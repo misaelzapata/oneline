@@ -1,0 +1,51 @@
+{% extends "_base.html" %}
+{% import "_forms.html" as forms %}
+{% block content %}
+
+<div class="text-center">
+  <h3>Send a Message!</h3>
+</div>
+
+<br>
+
+<form action="" method="POST">
+  <div class="form-group">
+ <table class="table table-striped"> 
+ 	<thead> 
+ 		<tr> 
+ 			<th>#</th> 
+ 			<th>Contact</th> 
+ 			<th>Send Message</th> 
+ 			<th>Message Template</th> 
+ 		</tr> 
+ 	</thead> 
+ 	<tbody> 
+ 		{% for c in contacts %}
+ 		<tr> 
+ 			<th scope="row">{{c.id}}</th> 
+ 			<td><strong>{{c.name}}</strong> - <em>{{c.phone}} </em></td> 
+ 			<td>
+ 				<input type='checkbox' name='contact' value='{{c.id}}'>
+ 			</td> 
+ 			<td>  	
+ 				<select name='message[{{c.id}}]' class="form-control input-lg">
+ 					{% for m in messages %}
+ 					<option value="{{m.id}}">{{m.name}}</option>
+ 					{% endfor %}		
+ 				</select> 
+ 			</td> 
+ 		</tr>
+     {% endfor %}
+ 	</tbody> 
+ </table>
+	
+  </div>
+  <input type="submit" class="btn btn-primary btn-lg btn-block" value="Submit">
+  
+</form>
+
+
+
+<br>
+<hr>
+{% endblock %}

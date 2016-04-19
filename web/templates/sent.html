@@ -1,0 +1,42 @@
+{% extends "_base.html" %}
+
+{% block content %}
+
+<div class="text-center">
+  <h5>Messages Sent</h5>
+</div>
+<br>
+
+
+ <table class="table table-striped"> 
+ 	<thead> 
+ 		<tr> 
+ 			<th>#</th> 
+ 			<th>Contact</th> 
+ 			<th>Message</th> 
+ 			<th>Status</th> 
+ 			<th>Date</th>
+ 		</tr> 
+ 	</thead> 
+ 	<tbody> 
+ 		{% for s in sent %}
+ 		<tr> 
+ 			<th scope="row">{{s.id}}</th> 
+ 			<td>
+				<strong>{{s.contact.name}}</strong> - <em>{{s.status}} </em>
+			</td> 
+ 			<td>
+				{{s.raw_message}}
+ 			</td> 
+ 			<td>  
+				{{s.sent}}	
+ 			</td> 
+ 			<td>  
+				{{s.date_sent}}	
+ 			</td> 			
+ 		</tr>
+     {% endfor %}
+ 	</tbody> 
+ </table>
+ 
+{% endblock %}

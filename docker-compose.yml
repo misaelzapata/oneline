@@ -1,0 +1,66 @@
+mongo:
+  image: mongo:latest
+#  volumes:  
+#    - ./data/db:/data/db
+  ports:
+    - "0.0.0.0:27017:27017"
+redis:
+  image: redis:3.0.5
+  ports:
+    - "0.0.0.0:6379:6379"
+
+python_whats:
+  restart: always
+  image: python_fc
+  links:
+    - redis
+    - mongo
+  volumes:
+    - ./web:/app/
+    - ./logs:/logs
+    - ./web/static/:/app/static
+    - ./uploads/:/app/static/uploads
+    - ./python_whats/requirements.txt:/app/python_whats/requirements.txt
+    - ./python_whats/:/app/python_whats
+    - ./python_whats/_yowsup:/root/.yowsup
+    - ./python_whats/docker-entrypoint.sh:/app/python_whats/docker-entrypoint.sh
+    - ./configurations/app/downloader.ini:/etc/supervisor/whatsapp.ini
+    - ./configurations/supervisor/supervisord.conf:/etc/supervisord.conf
+  #env_file: .env
+  working_dir: /app/python_whats
+  entrypoint: /app/python_whats/docker-entrypoint.sh
+  
+web:
+  restart: always
+  build: ./web
+  expose:
+    - "5000"
+  ports:
+    - "5000:5000"
+  links:
+    - redis
+    - mongo
+  volumes:
+    - ./web:/app/
+    - ./logs:/logs
+    - ./web/static/:/app/static
+    - ./web/requirements.txt:/app/web/requirements.txt
+    - ./web/docker-entrypoint.sh:/app/web/docker-entrypoint.sh
+    - ./configurations/app/app.ini:/etc/supervisor/app.ini
+    - ./configurations/supervisor/supervisord.conf:/etc/supervisord.conf
+  working_dir: /app
+  entrypoint: ./docker-entrypoint.sh
+
+nginx:
+  restart: always
+  build: ./nginx/
+  ports:
+    - "80:80"
+    - "443:443"
+  volumes:
+    - ./web/static/:/www/static
+    - ./logs:/logs
+  volumes_from:
+    - web
+  links:
+    - web:web

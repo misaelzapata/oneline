@@ -1,0 +1,11 @@
+pymongo
+redis
+flask
+twitter-text-python
+python-slugify
+requests
+Flask-Admin
+flask-mongoengine
+Flask-Login
+Flask-DebugToolbar
+wtforms

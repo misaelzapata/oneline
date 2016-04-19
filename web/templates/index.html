@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+
+{% block content %}
+
+<div class="text-center">
+  <h1>Welcome!</h1>
+</div>
+<br>
+
+
+ <table class="table table-striped"> 
+ 	<thead> 
+ 		<tr> 
+ 			<th>#</th> 
+ 			<th>Contact</th> 
+ 			<th>Message</th> 
+ 			<th>Status</th> 
+ 		</tr> 
+ 	</thead> 
+ 	<tbody> 
+ 		{% for r in received %}
+ 		<tr> 
+ 			<th scope="row">{{r.id}}</th> 
+ 			<td>
+				<strong>{{r.user}}</strong> - <em>{{r.status}} </em>
+			</td> 
+ 			<td>
+				{{r.message}}
+ 			</td> 
+ 			<td>  
+				{{r.status}}	
+ 			</td> 
+ 		</tr>
+     {% endfor %}
+ 	</tbody> 
+ </table>
+ 
+{% endblock %}
