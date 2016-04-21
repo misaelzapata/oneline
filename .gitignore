@@ -61,3 +61,14 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+#VIM
+*.vim
+*.swp
+*.swo
+
+#Mac
+.DS_Store
+
+#others
+python_whats/src/
