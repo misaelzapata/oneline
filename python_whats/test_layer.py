@@ -45,8 +45,9 @@ class TestLayer(YowInterfaceLayer):
 
         return "%s@s.whatsapp.net" % number
 
-    def om_callback(ch, method, properties, body):
+    def om_callback(self, ch, method, properties, body):
         data = json.loads(body)
+        print data
         self.send_to_human(data['number'],data['body'])
         result = db.send_log.update_one(
             {"_id": ObjectId(data['log'])},
@@ -69,7 +70,7 @@ class TestLayer(YowInterfaceLayer):
                                               durable=True)
                 self.om_channel.basic_qos(prefetch_count=1)
                 self.om_channel.basic_consume(self.om_callback, 
-                                              queue='task_queue')
+                                              queue='outgoing_messages')
                 self.om_thread = ConsumerWorkerThread(self.om_channel)
                 self.om_thread.start()
                 print 'Pika thread started'

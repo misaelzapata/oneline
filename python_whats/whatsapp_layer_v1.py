@@ -530,7 +530,7 @@ class WhatsAppLayer(YowInterfaceLayer):
             messageIn['status'] = "unread"
             try:
                 result = db.receive_log.insert_one(messageIn)                
-                messageIn['message_id'] = str(messageIn['_id'])
+                messageIn['_id'] = str(messageIn['_id'])
                 nm_channel.basic_publish(exchange='',
                                          routing_key='new_message',
                                          body=json.dumps(messageIn),
