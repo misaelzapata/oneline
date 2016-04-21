@@ -1,0 +1,8 @@
+<div class="chat-box-right message" id="m{{ message["id"] }}">
+    {% module linkify(message["body"]) %}
+</div>
+<div class="chat-box-name-right">
+    <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+    - {% module linkify(message["username"]) %}
+</div>
+<hr class="hr-clas" />

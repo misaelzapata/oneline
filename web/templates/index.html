@@ -1,38 +1,164 @@
-{% extends "_base.html" %}
+﻿<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="Support chat window" />
+    <meta name="author" content="" />
+    <!--[if IE]>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <![endif]-->
+    <title>Bootstrap Chat Box Example</title>
+    <!-- BOOTSTRAP CORE STYLE CSS -->
+    <link href="{{ static_url("css/bootstrap.css") }}" rel="stylesheet" />
+    <!-- FONT AWESOME  CSS -->
+    <link href="{{ static_url("css/font-awesome.css") }}" rel="stylesheet" />
+    <!-- CUSTOM STYLE CSS -->
+    <link href="{{ static_url("css/style.css") }}" rel="stylesheet" />
+</head>
+<body>
 
-{% block content %}
 
-<div class="text-center">
-  <h1>Welcome!</h1>
-</div>
-<br>
+    <div class="container">
+        <div class="row pad-top pad-bottom">
 
 
- <table class="table table-striped"> 
- 	<thead> 
- 		<tr> 
- 			<th>#</th> 
- 			<th>Contact</th> 
- 			<th>Message</th> 
- 			<th>Status</th> 
- 		</tr> 
- 	</thead> 
- 	<tbody> 
- 		{% for r in received %}
- 		<tr> 
- 			<th scope="row">{{r.id}}</th> 
- 			<td>
-				<strong>{{r.user}}</strong> - <em>{{r.status}} </em>
-			</td> 
- 			<td>
-				{{r.message}}
- 			</td> 
- 			<td>  
-				{{r.status}}	
- 			</td> 
- 		</tr>
-     {% endfor %}
- 	</tbody> 
- </table>
- 
-{% endblock %}
+            <div class=" col-lg-6 col-md-6 col-sm-6">
+                <div class="chat-box-div">
+                    <div class="chat-box-head">
+                        GROUP CHAT HISTORY
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <span class="fa fa-cogs"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#"><span class="fa fa-map-marker"></span>&nbsp;Invisible</a></li>
+                                    <li><a href="#"><span class="fa fa-comments-o"></span>&nbsp;Online</a></li>
+                                    <li><a href="#"><span class="fa fa-lock"></span>&nbsp;Busy</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="#"><span class="fa fa-circle-o-notch"></span>&nbsp;Logout</a></li>
+                                </ul>
+                            </div>
+                    </div>
+                    <div id="inbox" class="panel-body chat-box-main">
+                        <hr class="hr-clas" />
+                        {% for message in messages %}
+                            {% include "message.html" %}
+                        {% end %}
+                    </div>
+                    <div id="input" class="chat-box-footer">
+                        <form action="/a/message/new" method="post" id="messageform">
+                            <div class="input-group">
+                                <input type="text" name="body" id="message"  class="form-control" placeholder="Enter Text Here...">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-info"  type="submit">SEND</button>
+                                </span>
+                                <input type="hidden" value="{{ _("Post") }}">
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                {% module xsrf_form_html() %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-3">
+                <div class="chat-box-online-div">
+                    <div class="chat-box-online-head">
+                        ONLINE USERS (120)
+                    </div>
+                    <div class="panel-body chat-box-online">
+
+                        <div class="chat-box-online-left">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Justine Goliyad
+                        </div>
+                        <hr class="hr-clas-low" />
+
+                        <div class="chat-box-online-right">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Romin Royeelin
+                        </div>
+                        <hr class="hr-clas-low" />
+                        <div class="chat-box-online-left">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Justine Goliyad
+                        </div>
+                        <hr class="hr-clas-low" />
+
+                        <div class="chat-box-online-right">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Romin Royeelin
+                        </div>
+                        <hr class="hr-clas-low" />
+                        <div class="chat-box-online-left">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Justine Goliyad
+                        </div>
+                        <hr class="hr-clas-low" />
+
+                        <div class="chat-box-online-right">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Romin Royeelin
+                        </div>
+                        <hr class="hr-clas-low" />
+                        <div class="chat-box-online-left">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Justine Goliyad
+                            <br />
+                            ( <small>Active from 3 hours</small> )
+                        </div>
+                        <hr class="hr-clas-low" />
+
+                        <div class="chat-box-online-right">
+                            <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                            -  Romin Royeelin
+                        </div>
+                        <hr class="hr-clas-low" />
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="col-lg-3 col-md-3 col-sm-3">
+                <div class="chat-box-new-div">
+                    <div class="chat-box-new-head">
+                        NEW CHATS (4)
+                    </div>
+                    <div class="panel-body chat-box-new">
+
+
+                        <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                        (@Justine)
+                           
+                            <hr class="hr-clas-low" />
+
+
+                        <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                        (@Romin)
+                              
+                            <hr class="hr-clas-low" />
+                        <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                        (@Justine)
+                           
+                            <hr class="hr-clas-low" />
+
+
+                        <img src="{{ static_url("img/user.png") }}" alt="bootstrap Chat box user image" class="img-circle" />
+                        (@Romin)
+                              
+                            <hr class="hr-clas-low" />
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ static_url("js/jquery-1.11.1.js") }}"></script>
+    <script src="{{ static_url("js/chat.js") }}"></script>
+    <script src="{{ static_url("js/bootstrap.js") }}"></script>
+</body>
+
+</html>
