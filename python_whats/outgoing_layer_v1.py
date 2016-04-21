@@ -7,9 +7,11 @@ from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtoco
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-#config HERE
-from config import DevConfig
-c = DevConfig
+from config import get_config
+
+
+_CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
+c = get_config(_CONF)
 
 # MongoDB
 from pymongo import MongoClient
@@ -21,9 +23,9 @@ import pika
 from pika_consumer_thread import ConsumerWorkerThread
 rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 
-class TestLayer(YowInterfaceLayer):
+class OutgoingLayer(YowInterfaceLayer):
     def __init__(self, transport = None):
-        super(TestLayer, self).__init__()
+        super(OutgoingLayer, self).__init__()
         if transport:
             self.transport = transport
         self.name = 'pika'

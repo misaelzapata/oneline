@@ -1,7 +1,17 @@
-# config.py
+# -*- coding: utf-8 -*-
+
 import os
-CREDENTIALS = ("", "") # replace with your phone and password
-class BaseConfig(object):
+from importlib import import_module
+
+def get_config(config=None):
+    if config is None:
+        config = os.environ['ONELINE_CONFIG']
+    Config = getattr(import_module('config'), config)
+    return Config()
+
+
+class Config(object):
+    CREDENTIALS = ("", "") # replace with your phone and password
     SECRET_KEY = '' #os.environ['SECRET_KEY']
     DEBUG = True  #os.environ['DEBUG']
     MONGODB_DB = '' #os.environ['MONGODB_DB']
@@ -15,7 +25,8 @@ class BaseConfig(object):
     PHONE = '' #os.environ['PHONE']
     PASSWORD = '' #os.environ['PASSWORD']
 
-class DevConfig(BaseConfig):
+
+class DevelopmentConfig(Config):
     SECRET_KEY = 'hi'
     DEBUG = True
     MONGODB_DB = 'oneline'

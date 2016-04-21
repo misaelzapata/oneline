@@ -23,23 +23,26 @@ from yowsup.layers.protocol_media.protocolentities import *
 from yowsup.layers.protocol_media.mediauploader import MediaUploader
 from yowsup.layers.protocol_profiles.protocolentities import *
 from yowsup.common.tools import ModuleTools, Jid
+from pymongo import MongoClient
+import pika
 
+from config import get_config
+
+
+_CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
+c = get_config(_CONF)
 logger = logging.getLogger(__name__)
 
-#config HERE
-from config import DevConfig
-c = DevConfig
-##
-from pymongo import MongoClient
+# MongoDB
 client = MongoClient(host=c.MONGODB_HOST, port=c.MONGODB_PORT)
 db = client[c.MONGODB_DB]
-# pikachu
-import pika
+
+# RabbitMQ
 rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 nm_channel = rabbit_cn.channel()
 nm_channel.queue_declare(queue='new_message', durable=True)
 
-class WhatsAppLayer(YowInterfaceLayer):
+class IncomingLayer(YowInterfaceLayer):
     PROP_RECEIPT_AUTO = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
     PROP_RECEIPT_KEEPALIVE = "org.openwhatsapp.yowsup.prop.cli.keepalive"
     PROP_CONTACT_JID = "org.openwhatsapp.yowsup.prop.cli.contact.jid"
@@ -55,7 +58,7 @@ class WhatsAppLayer(YowInterfaceLayer):
     ACCOUNT_DEL_WARNINGS = 4
 
     def __init__(self):
-        super(WhatsAppLayer, self).__init__()
+        super(IncomingLayer, self).__init__()
         #YowsupEchoStack.__init__(self,credentials)
         self.accountDelWarnings = 0
         self.connected = False
