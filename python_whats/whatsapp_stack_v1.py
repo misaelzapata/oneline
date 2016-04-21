@@ -22,19 +22,18 @@ class YowsupCliStack(object):
             .push(TestLayer)\
             .build()
 
-        # self.stack.setCredentials(credentials)
         self.stack.setCredentials(credentials)
         self.stack.setProp(YowAxolotlLayer.PROP_IDENTITY_AUTOTRUST, True)
     def start(self):
         self.stack.broadcastEvent(YowLayerEvent(WhatsAppLayer.EVENT_START))
-        self.stack.broadcastEvent(YowLayerEvent('start_redis'))
+        self.stack.broadcastEvent(YowLayerEvent('start_pika'))
         try:
             self.stack.loop(timeout = 0.5, discrete = 0.5)
         except AuthError as e:
             logging.info("Auth Error, reason {}".format(e))
         except KeyboardInterrupt:
-            self.stack.broadcastEvent(TestLayer('killredis'))
-            self.stack.broadcastEvent(YowLayerEvent('killredis'))            
+            self.stack.broadcastEvent(TestLayer('kill_pika'))
+            self.stack.broadcastEvent(YowLayerEvent('kill_pika'))            
             print("\nOneLinedown")
             sys.exit(0)
 

@@ -1,28 +1,34 @@
+import json
+import redis
+import time
+import thread
 from yowsup.layers.interface                           import YowInterfaceLayer, ProtocolEntityCallback
 from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-import json
-import redis
-import time
 
 #config HERE
 from config import DevConfig
 c = DevConfig
-##
+
+# MongoDB
 from pymongo import MongoClient
 client = MongoClient(host=c.MONGODB_HOST, port=c.MONGODB_PORT)
 db = client[c.MONGODB_DB]
 
+# RabitMQ
+import pika
+from pika_consumer_thread import ConsumerWorkerThread
+rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 
 class TestLayer(YowInterfaceLayer):
     def __init__(self, transport = None):
         super(TestLayer, self).__init__()
         if transport:
             self.transport = transport
-        self.name = 'redis'
+        self.name = 'pika'
         self.detached = False
-        self.thread = False
+        self.om_thread = False
 
     def send_to_human(self,user, msg):
         #time.sleep( 1 )
@@ -38,8 +44,9 @@ class TestLayer(YowInterfaceLayer):
             return number
 
         return "%s@s.whatsapp.net" % number
-    def print_this(self,item)        :
-        data = json.loads(item['data'])
+
+    def om_callback(ch, method, properties, body):
+        data = json.loads(body)
         self.send_to_human(data['number'],data['body'])
         result = db.send_log.update_one(
             {"_id": ObjectId(data['log'])},
@@ -51,20 +58,32 @@ class TestLayer(YowInterfaceLayer):
         )
         print result.matched_count
         print item 
+        ch.basic_ack(delivery_tag = method.delivery_tag)
         
     def onEvent(self, layerEvent):
         #print layerEvent.getName()
-        if layerEvent.getName() == 'start_redis':
-            print 'redis started'
-            client = redis.Redis(host=c.REDIS_HOST,port=c.REDIS_PORT)
-            pubsub = client.pubsub()
-            pubsub.subscribe(**{'message_ready': self.print_this})
-            self.thread = pubsub.run_in_thread(sleep_time=0.001)
-        if layerEvent.getName() == 'killredis':
-            self.thread.stop()
+        if layerEvent.getName() == 'start_pika':
+            if not self.om_thread:
+                self.om_channel = rabbit_cn.channel()
+                self.om_channel.queue_declare(queue='outgoing_messages',
+                                              durable=True)
+                self.om_channel.basic_qos(prefetch_count=1)
+                self.om_channel.basic_consume(self.om_callback, 
+                                              queue='task_queue')
+                self.om_thread = ConsumerWorkerThread(self.om_channel)
+                self.om_thread.start()
+                print 'Pika thread started'
+            else:
+                print 'Pika thread already started'
+        if layerEvent.getName() == 'kill_pika':
+            if self.om_thread:
+                self.om_thread.stop()
+                print 'Pika thread stoped'
     
     def isDetached(self):
         return self.detached
 
     def getName(self):
         return self.name        
+
+

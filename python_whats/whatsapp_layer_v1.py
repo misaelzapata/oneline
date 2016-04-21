@@ -35,9 +35,9 @@ client = MongoClient(host=c.MONGODB_HOST, port=c.MONGODB_PORT)
 db = client[c.MONGODB_DB]
 # pikachu
 import pika
-rabbitmq_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
-channel.queue_declare(queue='new_message', durable=True)
+rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+nm_channel = rabbit_cn.channel()
+nm_channel.queue_declare(queue='new_message', durable=True)
 
 class WhatsAppLayer(YowInterfaceLayer):
     PROP_RECEIPT_AUTO = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
@@ -531,15 +531,15 @@ class WhatsAppLayer(YowInterfaceLayer):
             try:
                 result = db.receive_log.insert_one(messageIn)                
                 messageIn['message_id'] = str(messageIn['_id'])
-                channel.basic_publish(exchange='',
-                                      routing_key='message',
-                                      body=json.dumps(messageIn),
-                                      properties=pika.BasicProperties(
-                                         delivery_mode = 2,
-                                      ))
+                nm_channel.basic_publish(exchange='',
+                                         routing_key='new_message',
+                                         body=json.dumps(messageIn),
+                                         properties=pika.BasicProperties(
+                                             delivery_mode = 2,
+                                         ))
                 self.toLower(message.ack(self.sendRead))
             except:
-                logging.error("Could not send to redis", exc_info=True)                            
+                logging.error("Could not save/send message.", exc_info=True)                            
         elif message.getType() == "media":
             messageOut = self.getMediaMessageBody(message)
 
