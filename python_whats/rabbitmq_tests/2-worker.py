@@ -1,5 +1,6 @@
 import pika
 import time
+import thread
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 channel = connection.channel()
@@ -16,4 +17,9 @@ def callback(ch, method, properties, body):
 channel.basic_qos(prefetch_count=1)
 channel.basic_consume(callback, queue='task_queue')
 
-channel.start_consuming()
+thread.start_new_thread(channel.start_consuming, ())
+thread.start_new_thread(channel.start_consuming, ())
+
+print "is running!!!!!"
+time.sleep(10)
+print "chau"

@@ -33,10 +33,11 @@ c = DevConfig
 from pymongo import MongoClient
 client = MongoClient(host=c.MONGODB_HOST, port=c.MONGODB_PORT)
 db = client[c.MONGODB_DB]
-import redis
-r = redis.StrictRedis(host=c.REDIS_HOST,port=c.REDIS_PORT)
-p = r.pubsub()
-
+# pikachu
+import pika
+rabbitmq_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+channel = connection.channel()
+channel.queue_declare(queue='new_message', durable=True)
 
 class WhatsAppLayer(YowInterfaceLayer):
     PROP_RECEIPT_AUTO = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
@@ -528,8 +529,15 @@ class WhatsAppLayer(YowInterfaceLayer):
             messageIn['message'] = message.getBody()
             messageIn['status'] = "unread"
             try:
-                r.publish('new_message', json.dumps(messageIn))
                 result = db.receive_log.insert_one(messageIn)                
+                messageIn['message_id'] = str(messageIn['_id'])
+                channel.basic_publish(exchange='',
+                                      routing_key='message',
+                                      body=json.dumps(messageIn),
+                                      properties=pika.BasicProperties(
+                                         delivery_mode = 2,
+                                      ))
+                self.toLower(message.ack(self.sendRead))
             except:
                 logging.error("Could not send to redis", exc_info=True)                            
         elif message.getType() == "media":
