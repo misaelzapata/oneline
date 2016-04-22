@@ -23,22 +23,27 @@ from yowsup.layers.protocol_media.protocolentities import *
 from yowsup.layers.protocol_media.mediauploader import MediaUploader
 from yowsup.layers.protocol_profiles.protocolentities import *
 from yowsup.common.tools import ModuleTools, Jid
+from pymongo import MongoClient
+import pika
 
+from config import get_config
+from constants import INCOMING_MESSAGES
+
+
+_CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
+c = get_config(_CONF)
 logger = logging.getLogger(__name__)
 
-#config HERE
-from config import DevConfig
-c = DevConfig
-##
-from pymongo import MongoClient
+# MongoDB
 client = MongoClient(host=c.MONGODB_HOST, port=c.MONGODB_PORT)
 db = client[c.MONGODB_DB]
-import redis
-r = redis.StrictRedis(host=c.REDIS_HOST,port=c.REDIS_PORT)
-p = r.pubsub()
 
+# RabbitMQ
+rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+nm_channel = rabbit_cn.channel()
+nm_channel.queue_declare(queue=INCOMING_MESSAGES, durable=True)
 
-class WhatsAppLayer(YowInterfaceLayer):
+class IncomingLayer(YowInterfaceLayer):
     PROP_RECEIPT_AUTO = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
     PROP_RECEIPT_KEEPALIVE = "org.openwhatsapp.yowsup.prop.cli.keepalive"
     PROP_CONTACT_JID = "org.openwhatsapp.yowsup.prop.cli.contact.jid"
@@ -54,7 +59,7 @@ class WhatsAppLayer(YowInterfaceLayer):
     ACCOUNT_DEL_WARNINGS = 4
 
     def __init__(self):
-        super(WhatsAppLayer, self).__init__()
+        super(IncomingLayer, self).__init__()
         #YowsupEchoStack.__init__(self,credentials)
         self.accountDelWarnings = 0
         self.connected = False
@@ -528,10 +533,17 @@ class WhatsAppLayer(YowInterfaceLayer):
             messageIn['message'] = message.getBody()
             messageIn['status'] = "unread"
             try:
-                r.publish('new_message', json.dumps(messageIn))
                 result = db.receive_log.insert_one(messageIn)                
+                messageIn['_id'] = str(messageIn['_id'])
+                nm_channel.basic_publish(exchange='',
+                                         routing_key=INCOMING_MESSAGES,
+                                         body=json.dumps(messageIn),
+                                         properties=pika.BasicProperties(
+                                             delivery_mode = 2,
+                                         ))
+                self.toLower(message.ack(self.sendRead))
             except:
-                logging.error("Could not send to redis", exc_info=True)                            
+                logging.error("Could not save/send message.", exc_info=True)                            
         elif message.getType() == "media":
             messageOut = self.getMediaMessageBody(message)
 
