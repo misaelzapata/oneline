@@ -54,7 +54,7 @@ class OutgoingLayer(YowInterfaceLayer):
         print data
         self.send_message(data['user'], data['message'])
         result = self.db.send_log.update_one(
-            {"_id": ObjectId(data['log'])},
+            {"_id": ObjectId(data['_id'])},
             {
                 "$set": {
                     "sent": 1
