@@ -2,18 +2,49 @@
 #from app import db
 from mongoengine import *
 from flask.ext.admin.contrib.mongoengine import ModelView
-import flask_admin as flask_admin
 import datetime
 from wtforms import form, fields, validators
+from flask.ext.mongoengine import Document
+from flask.ext.mongoengine import MongoEngine
+from flask.ext.security import Security, MongoEngineUserDatastore, \
+    UserMixin, RoleMixin, login_required, utils, current_user
+
+from mongoengine import StringField, ListField, EmbeddedDocument, \
+    EmbeddedDocumentField, IntField, EmailField, DateTimeField, \
+    ReferenceField, CASCADE, PolygonField, SortedListField, DictField, \
+    BooleanField
+
 # Create user model. For simplicity, it will store passwords in plain text.
 # Obviously that's not right thing to do in real world application.
+class Role(Document, RoleMixin):
+    name = StringField(max_length=80, unique=True)
+    description = StringField(max_length=255)
+
+    def __unicode__(self):
+        return self.name
 
 
-class User(Document):
-    login = StringField(max_length=80, unique=True)
-    email = StringField(max_length=120)
-    password = StringField(max_length=64)
+class User(Document, UserMixin):
+    """Person using the system."""
+    username = StringField(required=True)
+    password = StringField(required=True)
+    first_name = StringField(required=True)
+    last_name = StringField(required=True)
+    email = EmailField()
+    phone = StringField()
+    cellphone = StringField()
+    active = BooleanField()
+    roles = ListField(ReferenceField(Role), default=[])
+    meta = {
+        'indexes': [{
+            'fields': ['email'],
+            'unique': True,
+            'cache_for': 0  # is needed due to strange bug in PyMongo
+        }]
+    }
 
+    def __unicode__(self):
+        return self.username
     # Flask-Login integration
     def is_authenticated(self):
         return True
@@ -26,12 +57,7 @@ class User(Document):
 
     def get_id(self):
         return str(self.id)
-
-    # Required for administrative interface
-    def __unicode__(self):
-        return self.login
-
-
+        
 class Contact(Document):
     name = StringField(max_length=200, required=False)
     phone = StringField(max_length=200, required=True)
@@ -68,12 +94,6 @@ class MyModelView(ModelView):
         return login.current_user.is_authenticated()
 
 
-# Create customized index view class
-class MyAdminIndexView(flask_admin.AdminIndexView):
-
-    def is_accessible(self):
-        return login.current_user.is_authenticated()
-
 # Customized admin views
 
 
@@ -91,31 +111,3 @@ class ContactView(ModelView):
 
 class MessageView(ModelView):
     column_filters = ['name']
-
-
-# Define login and registration forms (for flask-login)
-class LoginForm(form.Form):
-    login = fields.TextField(validators=[validators.required()])
-    password = fields.PasswordField(validators=[validators.required()])
-
-    def validate_login(self, field):
-        user = self.get_user()
-
-        if user is None:
-            raise validators.ValidationError('Invalid user')
-
-        if user.password != self.password.data:
-            raise validators.ValidationError('Invalid password')
-
-    def get_user(self):
-        return User.objects(login=self.login.data).first()
-
-
-class RegistrationForm(form.Form):
-    login = fields.TextField(validators=[validators.required()])
-    email = fields.TextField()
-    password = fields.PasswordField(validators=[validators.required()])
-
-    def validate_login(self, field):
-        if User.objects(login=self.login.data):
-            raise validators.ValidationError('Duplicate username')
