@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 from importlib import import_module
 
-def get_config(config=None):
+def get_config(config=None,
+               credentials_json='credentials.json',
+               credentials_index=0):
     if config is None:
         config = os.environ['ONELINE_CONFIG']
     Config = getattr(import_module('config'), config)
-    return Config()
+    configuration = Config()
+    credentials = open(credentials_json).read()
+    credentials = json.loads(credentials)
+    configuration.CREDENTIALS = credentials[credentials_index]
+    return configuration
 
 
 class Config(object):
-    CREDENTIALS = ("", "") # replace with your phone and password
     SECRET_KEY = '' #os.environ['SECRET_KEY']
     DEBUG = True  #os.environ['DEBUG']
     MONGODB_DB = '' #os.environ['MONGODB_DB']
