@@ -52,6 +52,14 @@ class OutgoingLayer(YowInterfaceLayer):
     def on_message_callback(self, ch, method, properties, body):
         data = json.loads(body)
         print data
+
+        if (not data.has_key('user') or
+            not data.has_key('message') or
+            not data.has_key('_id')):
+            print('Wrong outgoing message format, message discarded:', data)
+            ch.basic_ack(delivery_tag=method.delivery_tag)
+            return
+
         self.send_message(data['user'], data['message'])
         result = self.db.send_log.update_one(
             {"_id": ObjectId(data['_id'])},
