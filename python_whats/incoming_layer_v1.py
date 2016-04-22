@@ -27,7 +27,6 @@ from pymongo import MongoClient
 import pika
 
 from config import get_config
-from constants import INCOMING_MESSAGES
 
 
 _CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
@@ -41,7 +40,7 @@ db = client[c.MONGODB_DB]
 # RabbitMQ
 rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 nm_channel = rabbit_cn.channel()
-nm_channel.queue_declare(queue=INCOMING_MESSAGES, durable=True)
+nm_channel.queue_declare(queue='new_message', durable=True)
 
 class IncomingLayer(YowInterfaceLayer):
     PROP_RECEIPT_AUTO = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
@@ -536,7 +535,7 @@ class IncomingLayer(YowInterfaceLayer):
                 result = db.receive_log.insert_one(messageIn)                
                 messageIn['_id'] = str(messageIn['_id'])
                 nm_channel.basic_publish(exchange='',
-                                         routing_key=INCOMING_MESSAGES,
+                                         routing_key='new_message',
                                          body=json.dumps(messageIn),
                                          properties=pika.BasicProperties(
                                              delivery_mode = 2,

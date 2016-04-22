@@ -1,21 +1,22 @@
-import sys
-import logging
 from yowsup.stacks import  YowStackBuilder
+
+from incoming_layer_v1 import IncomingLayer
+from outgoing_layer_v1 import OutgoingLayer
+
 from yowsup.layers.auth import AuthError
 from yowsup.layers import YowLayerEvent
 from yowsup.layers.auth import YowAuthenticationProtocolLayer
 from yowsup.layers.axolotl.layer import YowAxolotlLayer
+import sys
+import logging
 
 from config import get_config
-from incoming_layer_v1 import IncomingLayer
-from outgoing_layer_v1 import OutgoingLayer
 
 
 _CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
 CREDENTIALS = get_config(_CONF).CREDENTIALS
 
-
-class YowsupStack(object):
+class YowsupCliStack(object):
     def __init__(self, credentials, encryptionEnabled = True):
         stackBuilder = YowStackBuilder()
         self.thread = ''
@@ -24,9 +25,9 @@ class YowsupStack(object):
             .push(IncomingLayer)\
             .push(OutgoingLayer)\
             .build()
+
         self.stack.setCredentials(credentials)
         self.stack.setProp(YowAxolotlLayer.PROP_IDENTITY_AUTOTRUST, True)
-
     def start(self):
         self.stack.broadcastEvent(YowLayerEvent(IncomingLayer.EVENT_START))
         self.stack.broadcastEvent(YowLayerEvent('start_pika'))
@@ -40,7 +41,6 @@ class YowsupStack(object):
             print("\nOneLinedown")
             sys.exit(0)
 
-
 if __name__==  "__main__":
-    stack = YowsupStack(credentials=CREDENTIALS, encryptionEnabled=True)
+    stack = YowsupCliStack(credentials=CREDENTIALS, encryptionEnabled=True)
     stack.start() #this is the program mainloop
