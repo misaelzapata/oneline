@@ -4,8 +4,10 @@ flask
 twitter-text-python
 python-slugify
 requests
-Flask-Admin
-flask-mongoengine
-Flask-Login
+flask_admin
 Flask-DebugToolbar
+Flask-Login
+flask_mail
+flask-mongoengine
+flask-security
 wtforms

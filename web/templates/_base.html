@@ -36,11 +36,11 @@
 						  <a href="/admin">Admin</a>
 					  </li> 					  					  
 					  <li role="presentation">
-						  <a href="{{ url_for('logout_view') }}">Logout</a>
+						  <a href="{{ url_for('security.logout') }}">Logout</a>
 					  </li> 					  
 				  {% else %}
 					  <li role="presentation">
-					  	<a href="{{ url_for('login_view') }}" class="active">Login</a>
+					  	<a href="{{ url_for('security.login') }}" class="active">Login</a>
 					  </li>
 				  {% endif %}
 				  </ul> 
