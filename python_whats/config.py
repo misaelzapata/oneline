@@ -22,11 +22,13 @@ class Config(object):
     REDIS_HOST = '' #os.environ['REDIS_HOST']
     REDIS_PORT = '' #os.environ['REDIS_PORT']
     REDIS_DATABASE = '' #os.environ['REDIS_DATABASE']
+    RABBITMQ_HOST = '' #os.environ['REDIS_DATABASE']
     PHONE = '' #os.environ['PHONE']
     PASSWORD = '' #os.environ['PASSWORD']
 
 
 class DevelopmentConfig(Config):
+    CREDENTIALS = ("5493517653646", "6iDenOYZrip+KUdFXftyyW8i6yk=")
     SECRET_KEY = 'hi'
     DEBUG = True
     MONGODB_DB = 'oneline'
@@ -35,4 +37,5 @@ class DevelopmentConfig(Config):
     REDIS_HOST = 'redis' 
     REDIS_PORT = 6379
     REDIS_DATABASE = '0'
+    RABBITMQ_HOST = 'localhost'
     
