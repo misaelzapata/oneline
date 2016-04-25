@@ -85,29 +85,3 @@ class ReceiveLog(Document):
     status = StringField(choices=['read', 'unread'])
     date_received = DateTimeField(default=datetime.datetime.now)
 
-# Create customized model view class
-
-
-class MyModelView(ModelView):
-
-    def is_accessible(self):
-        return login.current_user.is_authenticated()
-
-
-# Customized admin views
-
-
-class UserView(ModelView):
-    column_filters = ['login', 'email']
-
-    column_searchable_list = ('login', 'email')
-
-
-class ContactView(ModelView):
-    column_filters = ['name', 'phone']
-
-    column_searchable_list = ('name', 'phone')
-
-
-class MessageView(ModelView):
-    column_filters = ['name']

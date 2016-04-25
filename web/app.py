@@ -26,9 +26,7 @@ from wtforms import form, fields, validators
 from wtforms.fields import PasswordField
 from flask.ext.admin import helpers, expose
 
-from models import Contact, Message, User, Role, SendLog, ReceiveLog, \
-    MyModelView, UserView, \
-    ContactView, MessageView
+from models import Contact, Message, User, Role, SendLog, ReceiveLog
 
 from wtforms.fields import PasswordField
 
@@ -50,35 +48,10 @@ _redis = redis.StrictRedis(host='redis', port=6379)
 # ADMIN #
 
 
-class MyModelView(ModelView):
+class MyAdminModelView(ModelView):
 
     def is_accessible(self):
-        return login.current_user.is_authenticated()
-
-
-# Create customized index view class
-class MyAdminIndexView(flask_admin.AdminIndexView):
-
-    def is_accessible(self):
-        return login.current_user.is_authenticated()
-
-# Customized admin views
-
-
-class UserView(ModelView):
-    column_filters = ['login', 'email']
-
-    column_searchable_list = ('login', 'email')
-
-
-class ContactView(ModelView):
-    column_filters = ['name', 'phone']
-
-    column_searchable_list = ('name', 'phone')
-
-
-class MessageView(ModelView):
-    column_filters = ['name']
+        return login.current_user.is_authenticated
 
 
 # Define login and registration forms (for flask-login)
@@ -124,11 +97,9 @@ class MyAdminIndexView(admin.AdminIndexView):
 
         form = LoginForm(request.form)
         if request.method == 'POST' and form.validate():
-            user = User.objects(username=form.username.data).first()
+            user = form.get_user()
             if user is not None:
-                print user.password
-                print form.password.data
-                if user and verify_password(form.password.data, user.password):
+                if user and utils.verify_password(form.password.dataZ, user.password):
                     login.login_user(user)
                     flash("Logged in successfully!", category='success')
                 return redirect(url_for('admin.index'))
@@ -136,43 +107,19 @@ class MyAdminIndexView(admin.AdminIndexView):
 
         if login.current_user.is_authenticated:
             return redirect(url_for('.index'))
-        link = '<p>Don\'t have an account? <a href="' + \
-            url_for('.register_view') + '">Click here to register.</a></p>'
+        link = '<p>Don\'t have an account? Too bad... </p>'
         self._template_args['form'] = form
         self._template_args['link'] = link
         return super(MyAdminIndexView, self).index()
 
-    @expose('/register/', methods=('GET', 'POST'))
-    def register_view(self):
-        form = RegistrationForm(request.form)
-        if helpers.validate_form_on_submit(form):
-            user = User()
-
-            form.populate_obj(user)
-            # we hash the users password to avoid saving it as plaintext in the db,
-            # remove to use plain text:
-            user.password = generate_password_hash(form.password.data)
-
-            db.session.add(user)
-            db.session.commit()
-
-            login.login_user(user)
-            return redirect(url_for('.index'))
-        link = '<p>Already have an account? <a href="' + \
-            url_for('.login_view') + '">Click here to log in.</a></p>'
-        self._template_args['form'] = form
-        self._template_args['link'] = link
-        return super(MyAdminIndexView, self).index()
 
     @expose('/logout/')
     def logout_view(self):
         login.logout_user()
         return redirect(url_for('.index'))
         
-class UserView(ModelView):
+class UserView(MyAdminModelView):
 
-    def is_accessible(self):
-        return login.current_user.is_authenticated
 
     #column_filters = ['first_name', 'last_name', 'username']
     #column_exclude_list = ['password', ]
@@ -209,19 +156,9 @@ class UserView(ModelView):
 # Customized admin views
 
 
-class RoleView(ModelView):
-
-    def is_accessible(self):
-        return login.current_user.is_authenticated
+class RoleView(MyAdminModelView):
 
     column_filters = ['name']
-
-# Create customized model view class
-
-class MyModelView(ModelView):
-
-    def is_accessible(self):
-        return login.current_user.is_authenticated
 
 # Setup Flask-Security
 user_datastore = MongoEngineUserDatastore(db, User, Role)
@@ -247,10 +184,6 @@ admin = admin.Admin(
     app,
     'Admin',
     index_view=MyAdminIndexView())
-# Add Flask-Admin views for Users and Roles
-admin.add_view(ModelView(User))
-admin.add_view(ModelView(Role))
-# ADMIN #
 
 @app.before_request
 def before_request():
@@ -367,11 +300,21 @@ def logout_view():
     login.logout_user()
     return redirect(url_for('index'))
 
-#admin.add_view(UserView(User))
+
+class ContactView(MyAdminModelView):
+    column_filters = ['name', 'phone']
+
+    column_searchable_list = ('name', 'phone')
+
+
+class MessageView(MyAdminModelView):
+    column_filters = ['name']
+
+admin.add_view(UserView(User))
 admin.add_view(ContactView(Contact))
 admin.add_view(MessageView(Message))
-admin.add_view(ModelView(SendLog))
-admin.add_view(ModelView(ReceiveLog))
+admin.add_view(MyAdminModelView(SendLog))
+admin.add_view(MyAdminModelView(ReceiveLog))
 
 if __name__ == '__main__':
     init_login()
