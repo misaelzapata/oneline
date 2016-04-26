@@ -51,7 +51,10 @@ _redis = redis.StrictRedis(host='redis', port=6379)
 class MyAdminModelView(ModelView):
 
     def is_accessible(self):
-        return login.current_user.is_authenticated
+        if login.current_user.is_authenticated:
+            if login.current_user.has_role("admin"):
+                return True
+        return False
 
 
 # Define login and registration forms (for flask-login)
@@ -83,7 +86,13 @@ class RegistrationForm(form.Form):
 
 # Customized admin views
 
+
 class MyAdminIndexView(admin.AdminIndexView):
+
+    def is_accessible(self):
+        if login.current_user.is_authenticated:
+            return login.current_user.has_role("admin")
+        return True
 
     @expose('/')
     def index(self):
@@ -99,7 +108,7 @@ class MyAdminIndexView(admin.AdminIndexView):
         if request.method == 'POST' and form.validate():
             user = form.get_user()
             if user is not None:
-                if user and utils.verify_password(form.password.dataZ, user.password):
+                if user and utils.verify_password(form.password.data, user.password):
                     login.login_user(user)
                     flash("Logged in successfully!", category='success')
                 return redirect(url_for('admin.index'))
@@ -170,13 +179,21 @@ security = Security(app, user_datastore)
 def create_user():
     # Create the Roles "admin" and "end-user" -- unless they already exist
     user_datastore.find_or_create_role(name='admin', description='Administrator')
+    user_datastore.find_or_create_role(name='operator', description='Operator')
 
     # Create two Users for testing purposes -- unless they already exists.
     # In each case, use Flask-Security utility function to encrypt the password.
     encrypted_password = utils.encrypt_password('admin')
     if not user_datastore.get_user('dropkek@oneline.net'):
-        user_datastore.create_user(email='dropkek@oneline.net', password=encrypted_password)
+        user_datastore.create_user(email='dropkek@oneline.net', password=encrypted_password, username="a",
+                                   first_name="a", last_name="b")
+    encrypted_password = utils.encrypt_password('123456')
+    if not user_datastore.get_user('operator@oneline.net'):
+        user_datastore.create_user(email='operator@oneline.net', password=encrypted_password, username="b",
+                                   first_name="b", last_name="c")
 
+    user_datastore.add_role_to_user('dropkek@oneline.net', 'admin')
+    user_datastore.add_role_to_user('operator@oneline.net', 'operator')
 # Views
 
 # Initialize Flask-Admin
