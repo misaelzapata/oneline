@@ -84,7 +84,7 @@
             <img src="./rest_api_example.png"/>
         </div>
         <script>
-            var ws = new WebSocket('ws://localhost:8080/ws');
+            var ws = new WebSocket('ws://localhost:8080/chat');
             var $message = $('#message');
 
             ws.onopen = function(){
@@ -96,7 +96,7 @@
                 $message.hide();
                 $message.fadeIn("slow");
                 $message.text('recieved message');
-
+                alert(ev.data);
                 var json = JSON.parse(ev.data);
                 $('#' + json.id).hide();
                 $('#' + json.id).fadeIn("slow");

@@ -3,20 +3,21 @@ import logging
 import pika
 from pymongo import MongoClient
 from tornado import websocket, web, ioloop
+from itsdangerous import TimestampSigner
 
 from config import get_config
 from pika_consumer_thread import ConsumerWorkerThread
 from constants import INCOMING_MESSAGES
 
-clients = []
+operators = []
 
 _CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
 CONF = get_config(_CONF)
-logger = logging.getLogger(__name__)
+logging.basicConfig(format=CONF.LOGGING_FORMAT, level=CONF.LOGGING_LEVEL)
 
 # MongoDB
-# client = MongoClient(host=c.MONGODB_HOST, port=c.MONGODB_PORT)
-# db = client[c.MONGODB_DB]
+client = MongoClient(host=CONF.MONGODB_HOST, port=CONF.MONGODB_PORT)
+db = client[CONF.MONGODB_DB]
 
 # RabbitMQ
 rabbit_cn = pika.BlockingConnection(
@@ -28,6 +29,9 @@ im_channel.basic_qos(prefetch_count=1)
 
 class IndexHandler(web.RequestHandler):
     def get(self):
+        s = TimestampSigner(CONF.SECRET)
+        # test test test
+        self.set_cookie(CONF.OPERATOR_ID_COOKIE, s.sign('test123'))
         self.render("status.html")
 
 
@@ -36,65 +40,81 @@ class SocketHandler(websocket.WebSocketHandler):
         return True
 
     def open(self):
-        if self not in clients:
-            clients.append(self)
+        # check loggin
+        s = TimestampSigner(CONF.SECRET)
+        try:
+            cookie = self.get_cookie(CONF.OPERATOR_ID_COOKIE)
+            if cookie is None:
+                raise Exception('Cookie not found')
+            operator_id = s.unsign(cookie, max_age=CONF.AUTH_EXPIRY)
+            logging.info('Socket opened by User: %s' % operator_id)
+        except Exception as e:
+            logging.error('Loggin error: %s.' % e)
+            self.close()    
+            return
+        # append to operators
+        if self not in operators:
+            self.contacts = []
+            self.operator_id = operator_id
+            operators.append(self)
+
+    def on_message(self, message):
+        try:
+            msg = json.loads(message)
+            # test test test
+            if msg.type == 'echo':
+                self.write_message(u"You said: %s." % message)
+        except Exception as e:
+            logging.error('Error receiving message: %s.' % e)
 
     def on_close(self):
-        if self in clients:
-            clients.remove(self)
+        if self in operators:
+            operators.remove(self)
 
 
-class ApiHandler(web.RequestHandler):
-
-    @web.asynchronous
-    def get(self, *args):
-        self.finish()
-        id = self.get_argument("id")
-        value = self.get_argument("value")
-        data = {"id": id, "value" : value}
+def send_messages_to_operators(ch, method, properties, body):
+    logging.info('New incoming message: %s.' % body)
+    try:
+        data = json.loads(body)
+        # check if an operator is chatting with this contact
+        operator = [x for x in operators if data['contact'] in x.contacts]
         data = json.dumps(data)
-        for c in clients:
-            c.write_message(data)
-
-    @web.asynchronous
-    def post(self):
-        pass
-
+        if len(operator):
+            op = operator[0]
+            logging.info('Sending msg to operator %s.' % op.operator_id)
+            op.write_message(data)
+        else:
+            logging.info('Sending msg all operators.')
+            for c in operators:
+                c.write_message(data)
+        logging.info('Message sent succesfully, sending ACK to RabbitMQ.')        
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except Exception as e:
+        logging.error('An error ocurred while sending msg to client: %s' % e)
 
 app = web.Application([
     (r'/', IndexHandler),
-    (r'/ws', SocketHandler),
-    (r'/api', ApiHandler),
+    (r'/chat', SocketHandler),
     (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': '.'}),
 ])
 
-def send_to_clients(ch, method, properties, body):
-    print('new message: ', body)
-    data = json.loads(body)
-    data = {"id": 2, "value" : data['message']}
-    data = json.dumps(data)
-    for c in clients:
-        c.write_message(data)
-    ch.basic_ack(delivery_tag=method.delivery_tag)
-
-
 if __name__ == '__main__':
     print """
-  _      __      ____
- | | /| / /__   / __/__ _____  _____ ____
- | |/ |/ (_-<  _\ \/ -_) __/ |/ / -_) __/
- |__/|__/___/ /___/\__/_/  |___/\__/_/
-
- Listening on port: 8080
+ _      __      ____
+| | /| / /__   / __/__ _____  _____ ____
+| |/ |/ (_-<  _\ \/ -_) __/ |/ / -_) __/
+|__/|__/___/ /___/\__/_/  |___/\__/_/
     """
-    app.listen(8080)
+    app.listen(CONF.PORT)
+    logging.info('Listening on port: %s' % CONF.PORT)
     try:
-        im_channel.basic_consume(send_to_clients, queue=INCOMING_MESSAGES)
+        im_channel.basic_consume(send_messages_to_operators,
+                                 queue=INCOMING_MESSAGES)
         im_thread = ConsumerWorkerThread(im_channel)
         im_thread.start()
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:
-        print '\nShutting down Ws Server...'
+        logging.info('Shutting down Ws Server...')
         ioloop.IOLoop.instance().stop()
         im_thread.stop()
-        print '\nBye.'
+        logging.info('Bye.')
