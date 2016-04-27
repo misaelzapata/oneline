@@ -2,50 +2,134 @@
 {% import "_forms.html" as forms %}
 {% block content %}
 
-<div class="text-center">
-  <h3>Send a Message!</h3>
-</div>
 
-<br>
+    <div class="container">
+        <div class="row pad-top pad-bottom">
+            <div class="col-lg-3 col-md-3 col-sm-3">
+                <div class="chat-box-online-div">
+                    <div class="chat-box-online-head">
+                        Contactos
+                    </div>
+                    <div class="panel-body chat-box-online">
 
-<form action="" method="POST">
-  <div class="form-group">
- <table class="table table-striped"> 
- 	<thead> 
- 		<tr> 
- 			<th>#</th> 
- 			<th>Contact</th> 
- 			<th>Send Message</th> 
- 			<th>Message Template</th> 
- 		</tr> 
- 	</thead> 
- 	<tbody> 
- 		{% for c in contacts %}
- 		<tr> 
- 			<th scope="row">{{c.id}}</th> 
- 			<td><strong>{{c.name}}</strong> - <em>{{c.phone}} </em></td> 
- 			<td>
- 				<input type='checkbox' name='contact' value='{{c.id}}'>
- 			</td> 
- 			<td>  	
- 				<select name='message[{{c.id}}]' class="form-control input-lg">
- 					{% for m in messages %}
- 					<option value="{{m.id}}">{{m.name}}</option>
- 					{% endfor %}		
- 				</select> 
- 			</td> 
- 		</tr>
-     {% endfor %}
- 	</tbody> 
- </table>
-	
-  </div>
-  <input type="submit" class="btn btn-primary btn-lg btn-block" value="Submit">
-  
-</form>
+                        <div class="chat-box-online-left"  name='misael'>
+                            <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            Misael - +549264444
+                        </div>
+                        <hr class="hr-clas-low" />
+
+                        <div class="chat-box-online-left"  name='misael'>
+                            <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            Matias - +549264445
+                        </div>
+                        <hr class="hr-clas-low" />
 
 
+                        <div class="chat-box-online-left"  name='misael'>
+                            <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            Diego - +549264444
+                        </div>
+                        <hr class="hr-clas-low" />
 
-<br>
-<hr>
+						{% for c in contacts %}
+                        <div class="chat-box-online-left"  name='{{c.id}}'>
+                            <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            {{c.name}} - {{c.phone}}
+                        </div>
+                        <hr class="hr-clas-low" />
+						{% endfor %}
+                    </div>
+
+                </div>
+
+            </div>
+            
+            <div class=" col-lg-6 col-md-6 col-sm-6">
+                <div class="chat-box-div">
+                    <div class="chat-box-head">
+                        Send a Message
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <span class="fa fa-cogs"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a href="#"><span class="fa fa-map-marker"></span>&nbsp;Invisible</a></li>
+                                    <li><a href="#"><span class="fa fa-comments-o"></span>&nbsp;Online</a></li>
+                                    <li><a href="#"><span class="fa fa-lock"></span>&nbsp;Busy</a></li>
+                                    <li class="divider"></li>
+                                </ul>
+                            </div>
+                    </div>
+                    <div id="inbox" class="panel-body chat-box-main">
+                        <hr class="hr-clas" />
+
+                        <div class="chat-box-right message" id="1">
+								Hola!
+							</div>
+							<div class="chat-box-name-right">
+								<img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+								- Misael
+							</div>
+                        <hr class="hr-clas" />
+
+                        <div class="chat-box-right message" id="2">
+								Mi vuelo sale hoy?
+							</div>
+							<div class="chat-box-name-right">
+								<img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+								- Misael
+							</div>
+                        <hr class="hr-clas" />
+                        {% for message in messages %}
+                            <div class="chat-box-right message" id="{{ message.id }}">
+								{{ message.body }}
+							</div>
+							<div class="chat-box-name-right">
+								<img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+								- {{ message.username }}
+							</div>
+							<hr class="hr-clas" />
+                        {% endfor %}
+                    </div>
+                    <div id="input" class="chat-box-footer">
+                        <form action="" method="post" id="messageform">
+                            <div class="input-group">
+                                <input type="text" name="body" id="message"  class="form-control" placeholder="Enter Text Here...">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-info" id="cacho">SEND</button>
+                                </span>
+                                <input type="hidden" value="">
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="col-lg-3 col-md-3 col-sm-3">
+                <div class="chat-box-new-div">
+                    <div class="chat-box-new-head">
+                        Operadores
+                    </div>
+                    <div class="panel-body chat-box-new">
+
+                        <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            - Operador 1
+                            <hr class="hr-clas-low" />
+                        <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            - Operador 2
+                            <hr class="hr-clas-low" />
+                        <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
+                            - Operador 3
+                            <hr class="hr-clas-low" />
+
+                    </div>
+
+                </div>
+
+            </div>
+			</div>
+		</div>
 {% endblock %}
