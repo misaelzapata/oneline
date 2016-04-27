@@ -1,10 +1,8 @@
-# OneLine
-====
+## OneLine
+## RabbitMQ Queues Names
 
-# RabbitMQ Queues Names
--------------
 - Incoming messages from users: 'incoming_messages', format example:
-```json
+```
 {
     '_id':'5719a2b721c93725aa60cb5b'
     'contact':'5493516113952@s.whatsapp.net', 
@@ -16,7 +14,7 @@
 ```
 
 - Outgoing messages to users: 'outgoing_messages', format example:
-```json
+```
 {
     '_id':'5719a2b721c93725aa60c357'
     'contact':'5493516113952@s.whatsapp.net', 
@@ -25,20 +23,19 @@
 }
 ```
 
-# Ws Server
--------------
+## Ws Server
 
-## Endpoints:
+### Endpoints:
 - Default URL: localhost:8080/chat
 - Listen to contact request:
-```json
+```
 {
     'type':'listen_contact'
     'contact':'5493516113952@s.whatsapp.net', 
 }
 ```
 - Send message to contact request:
-```json
+```
 {
     'type':'response_to_contact'
     'contact':'5493516113952@s.whatsapp.net', 
