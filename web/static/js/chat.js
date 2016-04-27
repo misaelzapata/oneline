@@ -27,7 +27,8 @@ $(document).ready(function() {
         }
     });
     $("#message").select();
-//    updater.start();
+    // To do- update client_list, operator list, and set current_client_focus to last message, and add on click event
+    updater.start();
 });
 
 function newMessage(form) {
@@ -37,25 +38,32 @@ function newMessage(form) {
 }
 
 jQuery.fn.formToDict = function() {
-    var fields = this.serializeArray();
     var json = {}
-    for (var i = 0; i < fields.length; i++) {
-        json[fields[i].name] = fields[i].value;
-    }
-    if (json.next) delete json.next;
+    json["type"] = "response_to_contact";
+    json["contact"] = updater.current_client;
+    json["message"] = this.find("#message").value();
     return json;
 };
 
 var updater = {
-//    socket: null,
-//
-//    start: function() {
-//        var url = "ws://" + location.host + "/socket";
-//        updater.socket = new WebSocket(url);
-//        updater.socket.onmessage = function(event) {
-//            updater.showMessage(JSON.parse(event.data));
-//        }
-//    },
+    socket: null,
+
+    current_client: null,
+
+    start: function() {
+        var url = "ws://127.0.0.1:8080/chat";
+        updater.socket = new WebSocket(url);
+        updater.socket.onmessage = function(event) {
+            if (updater.current_client == null){
+                updater.current_client = event.data.contact;
+            };
+            if (updater.current_client == event.data.contact){
+                updater.showMessage(JSON.parse(event.data));
+            } else {
+                // do something with the client list, if not present, append at the top.
+            }
+        }
+    },
 
     showMessage: function(message) {
         var existing = $("#m" + message.id);
