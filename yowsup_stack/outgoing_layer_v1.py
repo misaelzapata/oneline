@@ -53,20 +53,21 @@ class OutgoingLayer(YowInterfaceLayer):
         data = json.loads(body)
         print data
 
-        if (not data.has_key('user') or
+        if (not data.has_key('contact') or
             not data.has_key('message') or
             not data.has_key('_id')):
             print('Wrong outgoing message format, message discarded:', data)
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
-        self.send_message(data['user'], data['message'])
+        self.send_message(data['contact'], data['message'])
         result = self.db.send_log.update_one(
             {"_id": ObjectId(data['_id'])},
             {
                 "$set": {
-                    "sent": 1
-                }
+                    "sent": True
+                },
+                "$currentDate": {"date_sent": True}
             }
         )
         ch.basic_ack(delivery_tag=method.delivery_tag)

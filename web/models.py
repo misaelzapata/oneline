@@ -58,11 +58,18 @@ class User(Document, UserMixin):
     def get_id(self):
         return str(self.id)
         
+
 class Contact(Document):
     name = StringField(max_length=200, required=False)
     phone = StringField(max_length=200, required=True)
     date_modified = DateTimeField(default=datetime.datetime.now)
 
+
+class ContactUser(Document):
+    contact_jid = StringField(max_length=200, required=True)
+    user_id = StringField(max_length=200, required=True)
+    date_modified = DateTimeField(default=datetime.datetime.now)
+    
 
 class Message(Document):
     name = StringField(max_length=200, required=True)
@@ -74,7 +81,6 @@ class Message(Document):
 class SendLog(Document):
     contact = ReferenceField(Contact)
     message = ReferenceField(Message)
-    raw_message = StringField()
     sent = BooleanField(default=False)
     date_sent = DateTimeField(default=datetime.datetime.now)
 
@@ -85,3 +91,29 @@ class ReceiveLog(Document):
     status = StringField(choices=['read', 'unread'])
     date_received = DateTimeField(default=datetime.datetime.now)
 
+# Create customized model view class
+
+
+class MyModelView(ModelView):
+
+    def is_accessible(self):
+        return login.current_user.is_authenticated()
+
+
+# Customized admin views
+
+
+class UserView(ModelView):
+    column_filters = ['login', 'email']
+
+    column_searchable_list = ('login', 'email')
+
+
+class ContactView(ModelView):
+    column_filters = ['name', 'phone']
+
+    column_searchable_list = ('name', 'phone')
+
+
+class MessageView(ModelView):
+    column_filters = ['name']
