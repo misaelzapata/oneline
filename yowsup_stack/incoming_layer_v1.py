@@ -529,11 +529,13 @@ class IncomingLayer(YowInterfaceLayer):
             # self.output(message.getBody(), tag = "%s [%s]"%(message.getFrom(), formattedDate))
             messageOut = self.getTextMessageBody(message)
             messageIn = {}
-            messageIn['user'] = message.getFrom()
+            messageIn['contact'] = message.getFrom()
             messageIn['message'] = message.getBody()
             messageIn['status'] = "unread"
+            messageIn['created'] = datetime.datetime.now().isoformat()
+            messageIn['modified'] = datetime.datetime.now().isoformat()
             try:
-                result = db.receive_log.insert_one(messageIn)                
+                result = db[INCOMING_MESSAGES].insert_one(messageIn)                
                 messageIn['_id'] = str(messageIn['_id'])
                 nm_channel.basic_publish(exchange='',
                                          routing_key=INCOMING_MESSAGES,
