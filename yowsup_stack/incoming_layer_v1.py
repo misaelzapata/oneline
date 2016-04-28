@@ -39,7 +39,7 @@ client = MongoClient(host=c.MONGODB_HOST, port=c.MONGODB_PORT)
 db = client[c.MONGODB_DB]
 
 # RabbitMQ
-rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+rabbit_cn = pika.BlockingConnection(pika.ConnectionParameters(host=c.RABBITMQ_HOST))
 nm_channel = rabbit_cn.channel()
 nm_channel.queue_declare(queue=INCOMING_MESSAGES, durable=True)
 
