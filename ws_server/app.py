@@ -8,7 +8,8 @@ from itsdangerous import TimestampSigner
 
 from config import get_config
 from pika_consumer_thread import ConsumerWorkerThread
-from constants import INCOMING_MESSAGES, OUTGOING_MESSAGES, PENDING_CLIENTS
+from constants import INCOMING_MESSAGES, OUTGOING_MESSAGES, PENDING_CLIENTS, \
+    READED_MSG
 
 # format {'operator_id':'websocket.WebSocketHandler'}
 OPERATORS = {}
