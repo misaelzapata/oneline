@@ -145,6 +145,9 @@ class SocketHandler(websocket.WebSocketHandler):
         method, header, body = pc_channel.basic_get(PENDING_CLIENTS)
         operator.write_message(body)
         pc_channel.basic_ack(method.delivery_tag)
+        contact = json.loads(body)['contact']
+        operator_id = self._get_operator_id(self)
+        CONTACTS[contact] = operator_id
 
 
 
