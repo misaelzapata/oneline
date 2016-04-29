@@ -152,12 +152,15 @@ def send_messages_to_operators(ch, method, properties, body):
     try:
         data = json.loads(body)
         contact = data['contact']
+        msg_id = data['_id']
         data = json.dumps(data)
         if contact in CONTACTS:
             # send it to the assigned operator
             op_id = CONTACTS[contact]
             logging.info('Sending msg to operator %s.' % op_id)
             OPERATORS[op_id].write_message(data)
+            # save the user and mark it as read
+            update_sent_message(msg_id, op_id)
         else:
             # save into pending_clients
             data = {'type':'new_client', 'contact':contact}
@@ -179,6 +182,24 @@ def send_new_message_alert():
     msg_alert = '{"type":"new_message_alert"}'
     for op in OPERATORS.values():
         op.write_message(msg_alert)
+
+def update_sent_message(msg_id, operator_id):
+    try:
+        result = db[INCOMING_MESSAGES].update_one(
+            {"_id": ObjectId(msg_id)},
+            {
+                "$set": {
+                    "user": ObjectId(operator_id),
+                    "status": READED_MSG
+                },
+                "$currentDate": {"date_readed": True}
+            }
+        )
+        logging.info('Incoming message id %s updated.' % msg_id)
+    except Exception as e:
+        logging.error('Error updating incomming message: %s.' % e)
+        return False
+    return result
 
 app = web.Application([
     (r'/', IndexHandler),
