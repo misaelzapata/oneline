@@ -31,7 +31,7 @@ class OutgoingLayer(YowInterfaceLayer):
         self.db = client[self.conf.MONGODB_DB]
         # connect to rabbit
         rabbit_cn = pika.BlockingConnection(
-            pika.ConnectionParameters(host='localhost'))
+            pika.ConnectionParameters(host=self.conf.RABBITMQ_HOST))
         self.om_channel = rabbit_cn.channel()
         self.om_channel.queue_declare(queue=OUTGOING_MESSAGES, durable=True)
         self.om_channel.basic_qos(prefetch_count=1)

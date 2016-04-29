@@ -1,6 +1,8 @@
 import json
 import logging
+import threading
 import pika
+from bson.objectid import ObjectId
 from pymongo import MongoClient
 from tornado import websocket, web, ioloop
 from itsdangerous import TimestampSigner
@@ -17,6 +19,7 @@ CONTACTS = {}
 _CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
 CONF = get_config(_CONF)
 logging.basicConfig(format=CONF.LOGGING_FORMAT, level=CONF.LOGGING_LEVEL)
+ON_EXIT = False
 
 # MongoDB
 client = MongoClient(host=CONF.MONGODB_HOST, port=CONF.MONGODB_PORT)
@@ -68,11 +71,9 @@ class SocketHandler(websocket.WebSocketHandler):
                 CONTACTS[msg.contact] = operator_id
                 # update some mongo doc?
             elif msg.type == 'response_to_contact':
-                omsg = {}
-                omsg['contact'] = msg.contact
-                omsg['message'] = msg.message
-                omsg['sent'] = False
-                result = db[OUTGOING_MESSAGES].insert_one(omsg)                
+                omsg = self._save_outgoing_message(msg)
+                if not omsg:
+                    raise Exception('unable to save outgoing message %s' % msg)
                 omsg['_id'] = str(omsg['_id'])
                 om_channel.basic_publish(exchange='',
                                          routing_key=OUTGOING_MESSAGES,
@@ -80,6 +81,8 @@ class SocketHandler(websocket.WebSocketHandler):
                                          properties=pika.BasicProperties(
                                              delivery_mode = 2,
                                          ))
+            elif msg.type == 'get_operators_status':
+                pass
             elif msg.type == 'pass_contact_to_operator':
                 pass
         except Exception as e:
@@ -103,6 +106,19 @@ class SocketHandler(websocket.WebSocketHandler):
             logging.error('Loggin error: %s.' % e)
             return False
 
+    def _save_outgoing_message(self, msg):
+        try:
+            omsg = {}
+            omsg['contact'] = msg.contact
+            omsg['message'] = msg.message
+            omsg['sent'] = False
+            result = db[OUTGOING_MESSAGES].insert_one(omsg)                
+        except Exception as e:
+            logging.error('Error saving outgoing message: %s.' % e)
+            return False
+        return omsg
+
+
 
 def send_messages_to_operators(ch, method, properties, body):
     logging.info('New incoming message: %s.' % body)
@@ -116,14 +132,40 @@ def send_messages_to_operators(ch, method, properties, body):
             logging.info('Sending msg to operator %s.' % op_id)
             OPERATORS[op_id].write_message(data)
         else:
-            # send it to all operators
-            logging.info('Sending msg all operators.')
-            for op in OPERATORS.values():
-                op.write_message(data)
+            # send alert to all operators
+            send_new_message_alert()
         logging.info('Message forwarded succesfully, sending ACK to RabbitMQ.')        
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         logging.error('An error ocurred while sending msg to client/s: %s' % e)
+
+def send_new_message_alert():
+    logging.info('Sending new msg alert to all operators.')
+    msg_alert = '{"type":"new_message_alert"}'
+    for op in OPERATORS.values():
+        op.write_message(msg_alert)
+
+def send_operators_status():
+    try:
+        connected_users = []
+        for user_id in OPERATORS.keys():
+            user = db.user.find_one(ObjectId(user_id))
+            connected_users.append({'_id':user._id,
+                                    'first_name':user.first_name,
+                                    'last_name':user.last_name})
+        data = {'type':'operators_status',
+                'connected':connected_users}
+        data = json.dumps(data)
+        for op in OPERATORS.values():
+            op.write_message(data)
+        logging.info('Operator status updated.')
+    except Exception as e:
+        logging.error('Error updating operators status: %s.' % e)
+
+def update_operators_status():
+    send_operators_status()
+    if not ON_EXIT:
+        threading.Timer(5, update_operators_status).start()
 
 app = web.Application([
     (r'/', IndexHandler),
@@ -145,9 +187,13 @@ if __name__ == '__main__':
                                  queue=INCOMING_MESSAGES)
         im_thread = ConsumerWorkerThread(im_channel)
         im_thread.start()
+        logging.info('Listening incoming messages queue.')
+        update_operators_status()
+        logging.info('Updating operators status every %s secconds.' % 5)
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:
         logging.info('Shutting down Ws Server...')
+        ON_EXIT = True
         ioloop.IOLoop.instance().stop()
         im_thread.stop()
         logging.info('Bye.')
