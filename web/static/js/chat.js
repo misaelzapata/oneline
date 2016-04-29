@@ -33,6 +33,8 @@ $(document).ready(function() {
 
 function newMessage(form) {
     var message = form.formToDict();
+    console.log(message);
+    console.log(JSON.stringify(message));
     updater.socket.send(JSON.stringify(message));
     form.find("input[type=text]").val("").select();
 }
@@ -50,23 +52,55 @@ var updater = {
 
     current_client: null,
 
+    client_list: $("#client-list"),
+
+    operator_list: $("#operator-list"),
+
     start: function() {
         var url = "ws://127.0.0.1:8080/chat";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
-            if (updater.current_client == null){
-                updater.current_client = event.data.contact;
-            };
-            if (updater.current_client == event.data.contact){
-                updater.showMessage(JSON.parse(event.data));
-            } else {
-                // do something with the client list, if not present, append at the top.
-            }
+            response = JSON.parse(event.data);
+            //if (response.type == "client message"){
+                if (updater.current_client == null){
+                    updater.current_client = response.contact;
+                    updater.appendClient(response);
+                };
+                if (updater.current_client == response.contact){
+                    updater.showMessage(response);
+                } else {
+                    updater.addOrUpdateClient(message)
+                };
+            //}
         }
+    },
+
+    appendClient: function(message){
+        updater.client_list.prepend($("<hr>", {class:"hr-clas-low"}));
+        var client_dom = $('<div>', {class:"chat-box-online-left", style:{cursor:"pointer"}, id:message.contact});
+        var client_data_dom = $('<img />',
+                                {src:"static/img/user.png",
+                                 alt:"bootstrap Chat box user image",
+                                 class:"img-circle"});
+        client_dom.html(message.contact);
+        client_dom.prepend(client_data_dom);
+        client_dom.click(function(e){updater.current_client = e.target.id;});
+        updater.client_list.prepend(client_dom);
+    },
+
+    addOrUpdateClient: function(message){
+        var existing = $(message.contact);
+        if (existing.length == 0){
+            updater.appendClient(message);
+        }else{
+            existing.css("background-color","grey")
+        }
+
     },
 
     showMessage: function(message) {
         var existing = $("#m" + message.id);
+        console.log(existing.length);
         if (existing.length > 0) return;
         var node = $(message.html);
         node.hide();
