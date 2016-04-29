@@ -1,9 +1,10 @@
 # app.py
-import json
 import datetime
-import redis
-from string import Template
 import flask
+import json
+import redis
+from itsdangerous import TimestampSigner
+from string import Template
 from flask import Flask, g, flash
 from flask import request, render_template, url_for, redirect
 from config import BaseConfig, DevConfig
@@ -288,14 +289,17 @@ def user_login():
         user = form.get_user()
         login.login_user(user)
         flask.flash('Logged in successfully.')
-
+        s = TimestampSigner(app.config["SECRET"])
+        signature = s.sign(user.get_id())
         next = flask.request.args.get('next')
         # next_is_valid should check if the user has valid
         # permission to access the `next` url
         #if not next_is_valid(next):
         #    return flask.abort(400)
-
-        return redirect(next or flask.url_for('index'))
+        redirect_to_index_or_next = redirect(next or flask.url_for('index'))
+        response = app.make_response(redirect_to_index_or_next)
+        response.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
+        return response
     return render_template('form.html', form=form)
 
 @app.route('/register/', methods=('GET', 'POST'))

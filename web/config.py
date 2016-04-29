@@ -16,6 +16,8 @@ class BaseConfig(object):
 
 
 class DevConfig(BaseConfig):
+    OPERATOR_ID_COOKIE = 'operator'
+    SECRET = "__GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__"
     SECRET_KEY = 'hi'
     DEBUG = True
     MONGODB_DB = 'oneline'

@@ -1,3 +1,4 @@
+itsdangerous
 pymongo
 redis
 flask
