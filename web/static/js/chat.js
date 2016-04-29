@@ -38,8 +38,6 @@ $(document).ready(function() {
 
 function newMessage(form) {
     var message = form.formToDict();
-    console.log(message);
-    console.log(JSON.stringify(message));
     updater.socket.send(JSON.stringify(message));
     form.find("input[type=text]").val("").select();
 }
@@ -66,11 +64,10 @@ var updater = {
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             var response = JSON.parse(event.data);
-            console.log(response);
             strategy = {
                 "new_message_alert": function(message){$("#request-client").css("display", "block")},
                 "operators_status": function(message){updater.updateOperatorList(message)},
-                "new_client": function(message){updater.appendClient(message)},
+                "new_client": function(message){updater.addOrUpdateClient(message)},
                 "new_message": function(message){ updater.addOrUpdateClient(message); updater.showMessage(message)}
             }
             strategy[response.type](response);
@@ -100,19 +97,22 @@ var updater = {
 
     appendClient: function(message){
         updater.client_list.prepend($("<hr>", {class:"hr-clas-low"}));
-        var client_dom = $('<div>', {class:"chat-box-online-left", style:{cursor:"pointer"}, id:message.contact});
+        var client_dom = $('<div>', {class:"chat-box-online-left",
+                                     style:"cursor:pointer",
+                                     id:message.contact.split("@")[0],
+                                     name:message.contact});
         var client_data_dom = $('<img />',
                                 {src:"static/img/user.png",
                                  alt:"bootstrap Chat box user image",
                                  class:"img-circle"});
         client_dom.html(message.contact);
         client_dom.prepend(client_data_dom);
-        client_dom.click(function(e){updater.current_client = e.target.id;});
+        client_dom.click(function(e){updater.current_client = e.target.name;});
         updater.client_list.prepend(client_dom);
     },
 
     addOrUpdateClient: function(message){
-        var existing = $(message.contact);
+        var existing = $("#" + message.contact.split("@")[0]);
         if (existing.length == 0){
             updater.appendClient(message);
         }else{

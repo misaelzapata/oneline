@@ -47,16 +47,13 @@
                         {% endfor %}
                     </div>
                     <div id="input" class="chat-box-footer">
-                        <form action="" method="post" id="messageform">
                             <div class="input-group">
                                 <input type="text" name="body" id="message"  class="form-control" placeholder="Enter Text Here...">
                                 <span class="input-group-btn">
                                     <button class="btn btn-success">SEND</button>
                                 </span>
-                                <input type="hidden" value="">
-                                <input type="hidden" name="next" value="{{ request.path }}">
+
                             </div>
-                        </form>
                     </div>
                 </div>
 
