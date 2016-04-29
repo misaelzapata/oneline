@@ -86,7 +86,7 @@ class SocketHandler(websocket.WebSocketHandler):
                                              delivery_mode = 2,
                                          ))
             elif msg['type'] == 'get_next_client':
-                self._get_next_client(operator)
+                self._get_next_client(self)
             elif msg['type'] == 'pass_contact_to_operator':
                 pass
         except Exception as e:
