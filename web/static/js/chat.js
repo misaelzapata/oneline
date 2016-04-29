@@ -60,18 +60,37 @@ var updater = {
         var url = "ws://127.0.0.1:8080/chat";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
-            response = JSON.parse(event.data);
-            //if (response.type == "client message"){
-                if (updater.current_client == null){
-                    updater.current_client = response.contact;
-                    updater.appendClient(response);
-                };
-                if (updater.current_client == response.contact){
-                    updater.showMessage(response);
-                } else {
-                    updater.addOrUpdateClient(message)
-                };
-            //}
+            var response = JSON.parse(event.data);
+            console.log(response);
+            strategy = {
+                "new_message_alert": function(message){$("#request-client").css("display", "block")},
+                "operators_status": function(message){updater.updateOperatorList(message)},
+                "new_client": function(message){updater.appendClient(message)},
+                "new_message": function(message){ updater.addOrUpdateClient(message); updater.showMessage(message)}
+            }
+            strategy[response.type](response);
+        }
+    },
+
+    appendOperator: function(data){
+
+        updater.operator_list.prepend($("<hr>", {class:"hr-clas-low"}));
+        var operator_dom = $('<div>', {style:"cursor:pointer;", id:data._id});
+        var operator_data_dom = $('<img/>',
+                                {src:"static/img/user.png",
+                                 alt:"bootstrap Chat box user image",
+                                 class:"img-circle"});
+        operator_dom.html(" - " + data.first_name + " " + data.last_name);
+        operator_dom.prepend(operator_data_dom);
+        operator_dom.click(function(e){alert("coming soon!")});
+        updater.operator_list.prepend(operator_dom);
+    },
+
+    updateOperatorList: function(message){
+        updater.operator_list.empty();
+        for (n in message.connected){
+            console.log(n)
+            updater.appendOperator(message.connected[n]);
         }
     },
 
@@ -96,6 +115,18 @@ var updater = {
             existing.css("background-color","grey")
         }
 
+    },
+
+    dealWithClient: function(response){
+        if (updater.current_client == null){
+            updater.current_client = response.contact;
+            updater.appendClient(response);
+        };
+        if (updater.current_client == response.contact){
+            updater.showMessage(response);
+        } else {
+            updater.addOrUpdateClient(message)
+        }
     },
 
     showMessage: function(message) {

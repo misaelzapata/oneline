@@ -299,7 +299,6 @@ def user_login():
         redirect_to_index_or_next = redirect(next or flask.url_for('index'))
         response = app.make_response(redirect_to_index_or_next)
         response.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
-        import pdb; pdb.set_trace()
         return response
     return render_template('form.html', form=form)
 

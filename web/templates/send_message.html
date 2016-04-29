@@ -29,16 +29,9 @@
                     <div class="chat-box-head">
                         Send a Message
                             <div class="btn-group pull-right">
-                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                    <span class="fa fa-cogs"></span>
-                                    <span class="sr-only">Toggle Dropdown</span>
+                                <button id="request-client" style="display:none;" type="button" class="btn btn-success btn-sm">
+                                    <i class="glyphicon glyphicon-plus"></i>
                                 </button>
-                                <ul class="dropdown-menu" role="menu">
-                                    <li><a href="#"><span class="fa fa-map-marker"></span>&nbsp;Invisible</a></li>
-                                    <li><a href="#"><span class="fa fa-comments-o"></span>&nbsp;Online</a></li>
-                                    <li><a href="#"><span class="fa fa-lock"></span>&nbsp;Busy</a></li>
-                                    <li class="divider"></li>
-                                </ul>
                             </div>
                     </div>
                     <div id="inbox" class="panel-body chat-box-main">
@@ -58,7 +51,7 @@
                             <div class="input-group">
                                 <input type="text" name="body" id="message"  class="form-control" placeholder="Enter Text Here...">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-info">SEND</button>
+                                    <button class="btn btn-success">SEND</button>
                                 </span>
                                 <input type="hidden" value="">
                                 <input type="hidden" name="next" value="{{ request.path }}">
