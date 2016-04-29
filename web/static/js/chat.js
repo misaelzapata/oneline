@@ -16,9 +16,9 @@ $(document).ready(function() {
     if (!window.console) window.console = {};
     if (!window.console.log) window.console.log = function() {};
 
-    $("#request-client").click(function(e) {
-        updater.socket.send(JSON.stringify({'type':'get_new_client'}));
-        $(e.target).css("display", "hide");
+    $("#request-client").click(function() {
+        updater.socket.send(JSON.stringify({'type':'get_next_client'}));
+        $("#request-client").css("display", "none");
     });
 
     $("#messageform").on("submit", function() {
