@@ -16,6 +16,11 @@ $(document).ready(function() {
     if (!window.console) window.console = {};
     if (!window.console.log) window.console.log = function() {};
 
+    $("#request-client").click(function(e) {
+        updater.socket.send(JSON.stringify({'type':'get_new_client'}));
+        $(e.target).css("display", "hide");
+    });
+
     $("#messageform").on("submit", function() {
         newMessage($(this));
         return false;
@@ -89,7 +94,6 @@ var updater = {
     updateOperatorList: function(message){
         updater.operator_list.empty();
         for (n in message.connected){
-            console.log(n)
             updater.appendOperator(message.connected[n]);
         }
     },
@@ -131,7 +135,6 @@ var updater = {
 
     showMessage: function(message) {
         var existing = $("#m" + message.id);
-        console.log(existing.length);
         if (existing.length > 0) return;
         var node = $(message.html);
         node.hide();
