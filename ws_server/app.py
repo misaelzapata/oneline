@@ -8,7 +8,8 @@ from itsdangerous import TimestampSigner
 
 from config import get_config
 from pika_consumer_thread import ConsumerWorkerThread
-from constants import INCOMING_MESSAGES, OUTGOING_MESSAGES
+from constants import INCOMING_MESSAGES, OUTGOING_MESSAGES, PENDING_CLIENTS, \
+    READED_MSG
 
 # format {'operator_id':'websocket.WebSocketHandler'}
 OPERATORS = {}
@@ -33,6 +34,9 @@ im_channel.basic_qos(prefetch_count=1)
 # outgoing messages
 om_channel = rabbit_cn.channel()
 om_channel.queue_declare(queue=OUTGOING_MESSAGES, durable=True)
+# pending clients
+pc_channel = rabbit_cn.channel()
+pc_channel.queue_declare(queue=PENDING_CLIENTS, durable=True)
 
 
 class IndexHandler(web.RequestHandler):
@@ -56,7 +60,9 @@ class SocketHandler(websocket.WebSocketHandler):
             return
         logging.info('Operator id %s connected.' % operator_id)
         # append or update to OPERATORS
-        # TODO: if already connected, alert and disconnect old client.
+        # close previous session
+        if operator_id in OPERATORS:
+            OPERATORS[operator_id].close()
         OPERATORS[operator_id] = self
         self._update_operators_status()
 
@@ -64,12 +70,10 @@ class SocketHandler(websocket.WebSocketHandler):
         try:
             msg = json.loads(message)
             if msg.type == 'echo':
-                # just for testing
                 self.write_message(u"You said: %s." % message)
             elif msg.type == 'listen_contact':
                 operator_id = self._get_operator_id(self)
                 CONTACTS[msg.contact] = operator_id
-                # update some mongo doc?
             elif msg.type == 'response_to_contact':
                 omsg = self._save_outgoing_message(msg)
                 if not omsg:
@@ -81,8 +85,8 @@ class SocketHandler(websocket.WebSocketHandler):
                                          properties=pika.BasicProperties(
                                              delivery_mode = 2,
                                          ))
-            elif msg.type == 'get_operators_status':
-                pass
+            elif msg.type == 'get_next_client':
+                self._get_next_client(operator)
             elif msg.type == 'pass_contact_to_operator':
                 pass
         except Exception as e:
@@ -93,6 +97,8 @@ class SocketHandler(websocket.WebSocketHandler):
         operator_id = self._get_operator_id(self)
         if operator_id in OPERATORS:
             OPERATORS.pop(operator_id)
+        logging.info('Operator id %s disconnected.' % operator_id)
+        # update operators status
         self._update_operators_status()
 
     def _get_operator_id(self, operator_cn):
@@ -135,19 +141,36 @@ class SocketHandler(websocket.WebSocketHandler):
         except Exception as e:
             logging.error('Error updating operators status: %s.' % e)
 
+    def _get_next_client(self, operator):
+        method, header, body = pc_channel.basic_get(PENDING_CLIENTS)
+        operator.write_message(body)
+        pc_channel.basic_ack(method.delivery_tag)
+
+
 
 def send_messages_to_operators(ch, method, properties, body):
     logging.info('New incoming message: %s.' % body)
     try:
         data = json.loads(body)
         contact = data['contact']
+        msg_id = data['_id']
         data = json.dumps(data)
         if contact in CONTACTS:
             # send it to the assigned operator
             op_id = CONTACTS[contact]
             logging.info('Sending msg to operator %s.' % op_id)
             OPERATORS[op_id].write_message(data)
+            # save the user and mark it as read
+            update_sent_message(msg_id, op_id)
         else:
+            # save into pending_clients
+            data = {'type':'new_client', 'contact':contact}
+            pc_channel.basic_publish(exchange='',
+                                     routing_key=PENDING_CLIENTS,
+                                     body=json.dumps(data),
+                                     properties=pika.BasicProperties(
+                                         delivery_mode = 2,
+                                     ))
             # send alert to all operators
             send_new_message_alert()
         logging.info('Message forwarded succesfully, sending ACK to RabbitMQ.')        
@@ -161,10 +184,27 @@ def send_new_message_alert():
     for op in OPERATORS.values():
         op.write_message(msg_alert)
 
+def update_sent_message(msg_id, operator_id):
+    try:
+        result = db[INCOMING_MESSAGES].update_one(
+            {"_id": ObjectId(msg_id)},
+            {
+                "$set": {
+                    "user": ObjectId(operator_id),
+                    "status": READED_MSG
+                },
+                "$currentDate": {"date_readed": True}
+            }
+        )
+        logging.info('Incoming message id %s updated.' % msg_id)
+    except Exception as e:
+        logging.error('Error updating incomming message: %s.' % e)
+        return False
+    return result
+
 app = web.Application([
     (r'/', IndexHandler),
     (r'/chat', SocketHandler),
-    (r'/(rest_api_example.png)', web.StaticFileHandler, {'path': '.'}),
 ])
 
 if __name__ == '__main__':
