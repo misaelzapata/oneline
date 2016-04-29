@@ -544,7 +544,7 @@ class IncomingLayer(YowInterfaceLayer):
                                              delivery_mode = 2,
                                          ))
                 self.toLower(message.ack(self.sendRead))
-            except Exception e:
+            except Exception as e:
                 logging.error("Could not save/send message. %s" % e, exc_info=True) 
         elif message.getType() == "media":
             messageOut = self.getMediaMessageBody(message)
