@@ -160,9 +160,10 @@ def send_messages_to_operators(ch, method, properties, body):
             OPERATORS[op_id].write_message(data)
         else:
             # save into pending_clients
+            data = {'type':'new_client', 'contact':contact}
             pc_channel.basic_publish(exchange='',
                                      routing_key=PENDING_CLIENTS,
-                                     body=json.dumps({'contact':contact}),
+                                     body=json.dumps(data),
                                      properties=pika.BasicProperties(
                                          delivery_mode = 2,
                                      ))
@@ -173,14 +174,6 @@ def send_messages_to_operators(ch, method, properties, body):
     except Exception as e:
         logging.error('An error ocurred while sending msg to client/s: %s' % e)
 
-def save_pending_client():
-
-    om_channel.basic_publish(exchange='',
-                             routing_key=OUTGOING_MESSAGES,
-                             body=json.dumps(omsg),
-                             properties=pika.BasicProperties(
-                                 delivery_mode = 2,
-                             ))
 def send_new_message_alert():
     logging.info('Sending new msg alert to all operators.')
     msg_alert = '{"type":"new_message_alert"}'
