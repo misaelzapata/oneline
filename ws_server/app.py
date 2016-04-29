@@ -69,12 +69,12 @@ class SocketHandler(websocket.WebSocketHandler):
     def on_message(self, message):
         try:
             msg = json.loads(message)
-            if msg.type == 'echo':
+            if msg['type'] == 'echo':
                 self.write_message(u"You said: %s." % message)
-            elif msg.type == 'listen_contact':
+            elif msg['type'] == 'listen_contact':
                 operator_id = self._get_operator_id(self)
                 CONTACTS[msg.contact] = operator_id
-            elif msg.type == 'response_to_contact':
+            elif msg['type'] == 'response_to_contact':
                 omsg = self._save_outgoing_message(msg)
                 if not omsg:
                     raise Exception('unable to save outgoing message %s' % msg)
@@ -85,9 +85,9 @@ class SocketHandler(websocket.WebSocketHandler):
                                          properties=pika.BasicProperties(
                                              delivery_mode = 2,
                                          ))
-            elif msg.type == 'get_next_client':
+            elif msg['type'] == 'get_next_client':
                 self._get_next_client(operator)
-            elif msg.type == 'pass_contact_to_operator':
+            elif msg['type'] == 'pass_contact_to_operator':
                 pass
         except Exception as e:
             logging.error('Error receiving message: %s.' % e)
