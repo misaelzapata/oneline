@@ -1,6 +1,5 @@
 import json
 import logging
-import threading
 import pika
 from bson.objectid import ObjectId
 from pymongo import MongoClient
@@ -19,7 +18,6 @@ CONTACTS = {}
 _CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
 CONF = get_config(_CONF)
 logging.basicConfig(format=CONF.LOGGING_FORMAT, level=CONF.LOGGING_LEVEL)
-ON_EXIT = False
 
 # MongoDB
 client = MongoClient(host=CONF.MONGODB_HOST, port=CONF.MONGODB_PORT)
@@ -41,7 +39,8 @@ class IndexHandler(web.RequestHandler):
     def get(self):
         s = TimestampSigner(CONF.SECRET)
         # test test test
-        self.set_cookie(CONF.OPERATOR_ID_COOKIE, s.sign('test123'))
+        self.set_cookie(CONF.OPERATOR_ID_COOKIE,
+                        s.sign('5720eabb21c93751593f7a89'))
         self.render("status.html")
 
 
@@ -59,6 +58,7 @@ class SocketHandler(websocket.WebSocketHandler):
         # append or update to OPERATORS
         # TODO: if already connected, alert and disconnect old client.
         OPERATORS[operator_id] = self
+        self._update_operators_status()
 
     def on_message(self, message):
         try:
@@ -93,6 +93,7 @@ class SocketHandler(websocket.WebSocketHandler):
         operator_id = self._get_operator_id(self)
         if operator_id in OPERATORS:
             OPERATORS.pop(operator_id)
+        self._update_operators_status()
 
     def _get_operator_id(self, operator_cn):
         s = TimestampSigner(CONF.SECRET)
@@ -118,6 +119,21 @@ class SocketHandler(websocket.WebSocketHandler):
             return False
         return omsg
 
+    def _update_operators_status(self):
+        try:
+            users_ids = map((lambda x: ObjectId(x)), OPERATORS.keys())
+            users = db.user.find({'_id':{'$in':users_ids}})
+            connected_users = map((lambda x: {'_id':str(x['_id']),
+                                              'first_name':x['first_name'],
+                                              'last_name':x['last_name']}),
+                                  users)
+            data = json.dumps({'type':'operators_status',
+                               'connected':connected_users})
+            for op in OPERATORS.values():
+                op.write_message(data)
+            logging.info('Operator status updated: %s' % data)
+        except Exception as e:
+            logging.error('Error updating operators status: %s.' % e)
 
 
 def send_messages_to_operators(ch, method, properties, body):
@@ -145,28 +161,6 @@ def send_new_message_alert():
     for op in OPERATORS.values():
         op.write_message(msg_alert)
 
-def send_operators_status():
-    try:
-        connected_users = []
-        for user_id in OPERATORS.keys():
-            user = db.user.find_one(ObjectId(user_id))
-            connected_users.append({'_id':user._id,
-                                    'first_name':user.first_name,
-                                    'last_name':user.last_name})
-        data = {'type':'operators_status',
-                'connected':connected_users}
-        data = json.dumps(data)
-        for op in OPERATORS.values():
-            op.write_message(data)
-        logging.info('Operator status updated.')
-    except Exception as e:
-        logging.error('Error updating operators status: %s.' % e)
-
-def update_operators_status():
-    send_operators_status()
-    if not ON_EXIT:
-        threading.Timer(5, update_operators_status).start()
-
 app = web.Application([
     (r'/', IndexHandler),
     (r'/chat', SocketHandler),
@@ -188,12 +182,9 @@ if __name__ == '__main__':
         im_thread = ConsumerWorkerThread(im_channel)
         im_thread.start()
         logging.info('Listening incoming messages queue.')
-        update_operators_status()
-        logging.info('Updating operators status every %s secconds.' % 5)
         ioloop.IOLoop.instance().start()
     except KeyboardInterrupt:
         logging.info('Shutting down Ws Server...')
-        ON_EXIT = True
         ioloop.IOLoop.instance().stop()
         im_thread.stop()
         logging.info('Bye.')
