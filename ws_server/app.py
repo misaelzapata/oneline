@@ -59,10 +59,13 @@ class SocketHandler(websocket.WebSocketHandler):
             self.close()    
             return
         logging.info('Operator id %s connected.' % operator_id)
-        # append or update to OPERATORS
         # close previous session
         if operator_id in OPERATORS:
+            data = json.dumps({'type':'operator_new_session',
+                'message':'Session closed: user connected on other terminal.'})
+            OPERATORS[operator_id].write_message(data)
             OPERATORS[operator_id].close()
+        # append to OPERATORS
         OPERATORS[operator_id] = self
         self._update_operators_status()
 
@@ -89,8 +92,14 @@ class SocketHandler(websocket.WebSocketHandler):
                 self._get_next_client(self)
             elif msg['type'] == 'pass_contact_to_operator':
                 pass
+            else:
+                raise Exception('Wrong type.')
         except Exception as e:
             logging.error('Error receiving message: %s.' % e)
+            data = json.dumps({'type':'request_failed',
+                               'message':'Error: %s' % e,
+                               'data':message})
+            self.write_message(data)
 
     def on_close(self):
         # remove operator
