@@ -174,11 +174,12 @@ def send_messages_to_operators(ch, method, properties, body):
         data = json.loads(body)
         contact = data['contact']
         msg_id = data['_id']
-        data = json.dumps(data)
         if contact in CONTACTS:
             # send it to the assigned operator
             op_id = CONTACTS[contact]
-            logging.info('Sending msg to operator %s.' % op_id)
+            logging.info('Sending msg %s to operator %s.' % (msg_id, op_id))
+            data['type'] = 'new_message'
+            data = json.dumps(data)
             OPERATORS[op_id].write_message(data)
             # save the user and mark it as read
             update_sent_message(msg_id, op_id)
