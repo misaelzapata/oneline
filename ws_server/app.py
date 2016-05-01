@@ -37,6 +37,7 @@ om_channel.queue_declare(queue=OUTGOING_MESSAGES, durable=True)
 # pending clients
 pc_channel = rabbit_cn.channel()
 pc_channel.queue_declare(queue=PENDING_CLIENTS, durable=True)
+pc_channel.basic_qos(prefetch_count=1)
 
 
 class IndexHandler(web.RequestHandler):
@@ -95,9 +96,10 @@ class SocketHandler(websocket.WebSocketHandler):
             else:
                 raise Exception('Wrong type.')
         except Exception as e:
-            logging.error('Error receiving message: %s.' % e)
+            logging.error('Error receiving message: %s. Message: %s' % \
+                          (e, message))
             data = json.dumps({'type':'request_failed',
-                               'message':'Error: %s' % e,
+                               'message':str(e),
                                'data':message})
             self.write_message(data)
 
@@ -151,12 +153,18 @@ class SocketHandler(websocket.WebSocketHandler):
             logging.error('Error updating operators status: %s.' % e)
 
     def _get_next_client(self, operator):
+        operator_id = self._get_operator_id(operator)
+        logging.info('Getting next client to operator id %s.' % operator_id)
         method, header, body = pc_channel.basic_get(PENDING_CLIENTS)
+        if body is None:
+            raise Exception('No pending clients.')
+            return
+        logging.info('Got client: %s to operator id %s.' % (body, operator_id))
         operator.write_message(body)
-        pc_channel.basic_ack(method.delivery_tag)
+        pc_channel.basic_ack(delivery_tag=method.delivery_tag)
         contact = json.loads(body)['contact']
-        operator_id = self._get_operator_id(self)
         CONTACTS[contact] = operator_id
+        logging.info('CONTACTS dict updated:\n%s' % CONTACTS)
 
 
 
