@@ -3,10 +3,11 @@ import datetime
 import flask
 import json
 import redis
+import werkzeug
 from itsdangerous import TimestampSigner
 from string import Template
 from flask import Flask, g, flash
-from flask import request, render_template, url_for, redirect
+from flask import request, render_template, url_for, redirect, make_response
 from config import BaseConfig, DevConfig
 from flask.ext.mongoengine import MongoEngine
 from flask.ext.admin import Admin
@@ -220,11 +221,18 @@ def init_login():
 @app.route('/')
 def index():
     received = ReceiveLog.objects.all()
-    return render_template(
-        'index.html',
-        user=login.current_user,
-        received=received)
-
+    resp = make_response(render_template(
+                         'index.html',
+                         user=login.current_user,
+                         received=received))
+    ############### nigga stuff ###################
+    if hasattr(g.user, 'id'):
+        s = TimestampSigner(app.config["SECRET"])
+        signature = s.sign(str(g.user.id))
+        print '######### signature: %s #########' % signature
+        resp.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
+    ############## end nigga stuff ################
+    return resp
 
 @app.route('/sent')
 def sent():
