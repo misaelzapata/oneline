@@ -21,11 +21,12 @@ $(document).ready(function() {
         $("#request-client").css("display", "none");
     });
 
-    $("#messageform").on("submit", function() {
-        newMessage($(this));
+    $("#send-message").click(function(e){
+        newMessage();
         return false;
     });
-    $("#messageform").on("keypress", function(e) {
+
+    $("#message").on("keypress", function(e) {
         if (e.keyCode == 13) {
             newMessage($(this));
             return false;
@@ -36,19 +37,14 @@ $(document).ready(function() {
     updater.start();
 });
 
-function newMessage(form) {
-    var message = form.formToDict();
+function newMessage() {
+    var message = {}
+    message["type"] = "response_to_contact";
+    message["contact"] = updater.current_client;
+    message["message"] = $("#message").val();
     updater.socket.send(JSON.stringify(message));
-    form.find("input[type=text]").val("").select();
+    $("#message").val("").select();
 }
-
-jQuery.fn.formToDict = function() {
-    var json = {}
-    json["type"] = "response_to_contact";
-    json["contact"] = updater.current_client;
-    json["message"] = this.find("#message").value();
-    return json;
-};
 
 var updater = {
     socket: null,
@@ -64,11 +60,12 @@ var updater = {
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             var response = JSON.parse(event.data);
+            console.log(response)
             strategy = {
                 "new_message_alert": function(message){$("#request-client").css("display", "block")},
                 "operators_status": function(message){updater.updateOperatorList(message)},
                 "new_client": function(message){updater.addOrUpdateClient(message)},
-                "new_message": function(message){ updater.addOrUpdateClient(message); updater.showMessage(message)}
+                "new_message": function(message){ updater.addOrUpdateClient(message); updater.showMessage(message)},
             }
             strategy[response.type](response);
         }
@@ -104,10 +101,11 @@ var updater = {
         var client_data_dom = $('<img />',
                                 {src:"static/img/user.png",
                                  alt:"bootstrap Chat box user image",
+                                 name:message.contact,
                                  class:"img-circle"});
         client_dom.html(message.contact);
         client_dom.prepend(client_data_dom);
-        client_dom.click(function(e){updater.current_client = e.target.name;});
+        client_dom.click(function(e){updater.current_client = $(e.target).attr('name')});
         updater.client_list.prepend(client_dom);
     },
 
