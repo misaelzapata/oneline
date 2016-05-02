@@ -121,14 +121,14 @@ class SocketHandler(websocket.WebSocketHandler):
             operator_id = s.unsign(cookie, max_age=CONF.AUTH_EXPIRY)
             return operator_id
         except Exception as e:
-            logging.error('Loggin error: %s.' % e)
+            logging.error('Login error: %s.' % e)
             return False
 
     def _save_outgoing_message(self, msg):
         try:
             omsg = {}
-            omsg['contact'] = msg.contact
-            omsg['message'] = msg.message
+            omsg['contact'] = msg['contact']
+            omsg['message'] = msg['message']
             omsg['sent'] = False
             result = db[OUTGOING_MESSAGES].insert_one(omsg)                
         except Exception as e:
@@ -194,7 +194,7 @@ def send_messages_to_operators(ch, method, properties, body):
                                      ))
             # send alert to all operators
             send_new_message_alert()
-        logging.info('Message forwarded succesfully, sending ACK to RabbitMQ.')        
+            logging.info('Incoming mesage saved as pending.')        
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         logging.error('An error ocurred while sending msg to client/s: %s' % e)

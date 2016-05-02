@@ -15,7 +15,7 @@
                     <button class="btn btn-primary" id='send_button' type="button">Send</button>
                 </div>
             </div>
-            <h3>Incoming messages</h3>
+            <h3>Log:</h3>
             <div class="container" id="incoming">
             </div>
         </div>
@@ -43,7 +43,11 @@
                 $message.text('error occurred');
             };
             $('#send_button').click(function() {
-                ws.send($('#send_text').val());
+                var json_text = $('#send_text').val();
+                ws.send(json_text);
+                var text = Date() + ' sent:<pre>' + json_text + '</pre>'
+                $('#incoming').prepend(text)
+                $('#send_text').val('');
             });
         </script>
     </body>
