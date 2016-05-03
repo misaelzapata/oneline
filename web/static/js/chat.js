@@ -148,6 +148,7 @@ var updater = {
 
         if (existing.length == 0){
             updater.appendClient(message);
+            updater.loadHistory($("#" + message.contact.split("@")[0]));
         }else{
             existing.css("background-color","grey")
         }
