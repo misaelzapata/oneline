@@ -196,6 +196,21 @@ def create_user():
 
     user_datastore.add_role_to_user('dropkek@oneline.net', 'admin')
     user_datastore.add_role_to_user('operator@oneline.net', 'operator')
+    if not user_datastore.get_user('mzapata@droptek.com'):
+        user_datastore.create_user(email='mzapata@droptek.com', password=encrypted_password, username="misael",
+                                   first_name="Misael", last_name="Zapata")
+    user_datastore.add_role_to_user('mzapata@droptek.com', 'admin')
+                                   
+    if not user_datastore.get_user('mbastos@droptek.com'):
+        user_datastore.create_user(email='mbastos@droptek.com', password=encrypted_password, username="matias",
+                                   first_name="Matias", last_name="Bastos")
+    user_datastore.add_role_to_user('mbastos@droptek.com', 'operator')
+    
+    if not user_datastore.get_user('fapelhanz@droptek.com'):
+        user_datastore.create_user(email='fapelhanz@droptek.com', password=encrypted_password, username="federico",
+                                   first_name="Federico", last_name="Apenhanz")
+    user_datastore.add_role_to_user('fapelhanz@droptek.com', 'operator')
+    
 # Views
 
 # Initialize Flask-Admin
