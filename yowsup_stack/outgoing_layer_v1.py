@@ -65,9 +65,9 @@ class OutgoingLayer(YowInterfaceLayer):
             {"_id": ObjectId(data['_id'])},
             {
                 "$set": {
-                    "sent": True
-                },
-                "$currentDate": {"date_sent": True}
+                    "sent": True,
+                    "date_sent": datetime.datetime.now().isoformat()
+                }
             }
         )
         ch.basic_ack(delivery_tag=method.delivery_tag)
