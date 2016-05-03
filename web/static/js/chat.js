@@ -28,13 +28,14 @@ $(document).ready(function() {
 
     $("#message").on("keypress", function(e) {
         if (e.keyCode == 13) {
-            newMessage($(this));
+            newMessage();
             return false;
         }
     });
     $("#message").select();
     // To do- update client_list, operator list, and set current_client_focus to last message, and add on click event
     updater.start();
+    updater.loadClients();
 });
 
 function newMessage() {
@@ -42,8 +43,12 @@ function newMessage() {
     message["type"] = "response_to_contact";
     message["contact"] = updater.current_client;
     message["message"] = $("#message").val();
+    message["operator_id"] = "(You)";
     updater.socket.send(JSON.stringify(message));
     $("#message").val("").select();
+    message["id"] = "";
+    updater.showMessage(message);
+    updater.magicScroll();
 }
 
 var updater = {
@@ -55,17 +60,18 @@ var updater = {
 
     operator_list: $("#operator-list"),
 
+    chat_window: $("#inbox"),
+
     start: function() {
         var url = "ws://127.0.0.1:8080/chat";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             var response = JSON.parse(event.data);
-            console.log(response)
             strategy = {
                 "new_message_alert": function(message){$("#request-client").css("display", "block")},
                 "operators_status": function(message){updater.updateOperatorList(message)},
+                "new_message": function(message){updater.dealWithClient(message);},
                 "new_client": function(message){updater.addOrUpdateClient(message)},
-                "new_message": function(message){ updater.addOrUpdateClient(message); updater.showMessage(message)},
             }
             strategy[response.type](response);
         }
@@ -92,6 +98,34 @@ var updater = {
         }
     },
 
+    magicScroll: function(){
+        updater.chat_window.animate({scrollTop: updater.chat_window[0].scrollHeight - updater.chat_window[0].clientHeight}, 1000);
+    },
+
+    loadClients: function(){
+        updater.client_list.empty();
+        $.get("get_clients_operator",
+            function(data, status){
+            for (n in data.clients){
+                message = {};
+                message.contact = data.clients[n];
+                updater.addOrUpdateClient(message);
+            }
+        })
+    },
+
+    loadHistory: function(client){
+        updater.chat_window.empty();
+        updater.current_client = client.attr("name");
+        $.get("history?contact="+ client.attr("name"),
+                function(data, status){
+                    for (n in data.conversation){
+                        updater.showMessage(data.conversation[n]);
+                    }
+                    updater.magicScroll()
+                })
+    },
+
     appendClient: function(message){
         updater.client_list.prepend($("<hr>", {class:"hr-clas-low"}));
         var client_dom = $('<div>', {class:"chat-box-online-left",
@@ -105,12 +139,13 @@ var updater = {
                                  class:"img-circle"});
         client_dom.html(message.contact);
         client_dom.prepend(client_data_dom);
-        client_dom.click(function(e){updater.current_client = $(e.target).attr('name')});
+        client_dom.click(function(e){updater.loadHistory($(e.target))});
         updater.client_list.prepend(client_dom);
     },
 
     addOrUpdateClient: function(message){
         var existing = $("#" + message.contact.split("@")[0]);
+
         if (existing.length == 0){
             updater.appendClient(message);
         }else{
@@ -125,7 +160,7 @@ var updater = {
             updater.appendClient(response);
         };
         if (updater.current_client == response.contact){
-            updater.showMessage(response);
+            updater.loadHistory($("#" + response.contact.split("@")[0]));
         } else {
             updater.addOrUpdateClient(message)
         }
@@ -134,9 +169,21 @@ var updater = {
     showMessage: function(message) {
         var existing = $("#m" + message.id);
         if (existing.length > 0) return;
-        var node = $(message.html);
-        node.hide();
-        $("#inbox").append(node);
-        node.slideDown();
+        var body = $('<div>',
+                    {class:"chat-box-right message",
+                    id:message.id});
+        var username = $('<div>', {class:"chat-box-name-right"});
+        var img_username = $('<img />', {class:"img-circle", src:"static/img/user.png"});
+        body.prepend(message.message);
+        if (!message.operator_id){
+            name = message.contact
+        }else{
+            name = message.operator_id
+        }
+        username.html("- " + name);
+        username.prepend(img_username);
+        updater.chat_window.append(body);
+        updater.chat_window.append(username);
+        updater.chat_window.append($("<hr>", {class:"hr-clas-low"}));
     }
 };

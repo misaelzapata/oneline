@@ -248,6 +248,41 @@ def received():
         user=login.current_user,
         received=received)
 
+
+@app.route('/history')
+def history():
+    # Feito :<
+    from pymongo import MongoClient
+    from flask import Response
+    client = MongoClient(host='mongo', port=27017)
+    dbz = client['oneline']
+    contact = request.args.get("contact")
+    incoming = list(dbz['incoming_messages'].find({"contact": contact}))
+    outgoing = list(dbz['outgoing_messages'].find({"contact": contact}))
+    from bson import json_util
+    conversation = incoming + outgoing
+    from dateutil import parser
+    conversation.sort(key=lambda chat: parser.parse(chat["created"]))
+    resp = Response(response=json_util.dumps({"conversation": conversation}),
+                    status=200,
+                    mimetype="application/json")
+    return resp
+
+
+@app.route('/get_clients_operator')
+def get_clients_operator():
+    # Feito :<
+    from pymongo import MongoClient
+    from flask import Response
+    client = MongoClient(host='mongo', port=27017)
+    dbz = client['oneline']
+    outgoing = dbz['outgoing_messages'].distinct("contact", {"operator_id": str(login.current_user.id)})
+    from bson import json_util
+    resp = Response(response=json_util.dumps({"clients": outgoing}),
+                    status=200,
+                    mimetype="application/json")
+    return resp
+
 @app.route('/send_message', methods=('GET', 'POST'))
 def send_message():
     if request.method == 'POST':

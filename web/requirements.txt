@@ -1,5 +1,6 @@
 itsdangerous
 pymongo
+python-dateutil
 redis
 flask
 twitter-text-python
