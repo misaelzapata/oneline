@@ -80,6 +80,7 @@ class SocketHandler(websocket.WebSocketHandler):
                 operator_id = self._get_operator_id(self)
                 CONTACTS[msg.contact] = operator_id
             elif msg['type'] == 'response_to_contact':
+                logging.info('Response to contact: %s' % msg)
                 operator_id = self._get_operator_id(self)
                 omsg = self._save_outgoing_message(msg, operator_id)
                 if not omsg:
@@ -91,6 +92,7 @@ class SocketHandler(websocket.WebSocketHandler):
                                          properties=pika.BasicProperties(
                                              delivery_mode = 2,
                                          ))
+                logging.info('Outgoing message sent to queue.')
             elif msg['type'] == 'get_next_client':
                 self._get_next_client(self)
             elif msg['type'] == 'pass_contact_to_operator':
@@ -134,7 +136,8 @@ class SocketHandler(websocket.WebSocketHandler):
             omsg['sent'] = False
             omsg['operator_id'] = operator_id
             omsg['created'] = datetime.datetime.now().isoformat()
-            result = db[OUTGOING_MESSAGES].insert_one(omsg)                
+            result = db[OUTGOING_MESSAGES].insert_one(omsg)               
+            logging.info('Outgoing message saved: %s' % omsg)
         except Exception as e:
             logging.error('Error saving outgoing message: %s.' % e)
             return False
