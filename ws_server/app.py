@@ -1,6 +1,7 @@
 import json
 import logging
 import pika
+import datetime
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from tornado import websocket, web, ioloop
@@ -131,7 +132,7 @@ class SocketHandler(websocket.WebSocketHandler):
             omsg['contact'] = msg['contact']
             omsg['message'] = msg['message']
             omsg['sent'] = False
-            omsg['operator_id'] = ObjectId(operator_id)
+            omsg['operator_id'] = operator_id
             omsg['created'] = datetime.datetime.now().isoformat()
             result = db[OUTGOING_MESSAGES].insert_one(omsg)                
         except Exception as e:
