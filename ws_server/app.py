@@ -216,9 +216,9 @@ def update_sent_message(msg_id, operator_id):
             {
                 "$set": {
                     "user": ObjectId(operator_id),
-                    "status": READED_MSG
-                },
-                "$currentDate": {"date_readed": True}
+                    "status": READED_MSG, 
+                    "date_readed": datetime.datetime.now().isoformat()
+                }
             }
         )
         logging.info('Incoming message id %s updated.' % msg_id)
