@@ -2,6 +2,7 @@
 
 import json
 import pika
+import datetime
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from yowsup.layers.interface import YowInterfaceLayer
