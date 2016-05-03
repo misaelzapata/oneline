@@ -17,26 +17,23 @@
     <div class="container">
       <br>
       <!-- child template -->
-	  <div class="row">
-			  <div class="col-md-3">
-				  <ul class="nav nav-pills nav-stacked nav-pills-stacked-example"> 				  
+	<nav class="navbar navbar-default">
+	  <div class="container-fluid">
+			  <div class="navbar-header">
+				  <span class="navbar-brand">OneLine</span>
+			  </div>
+				  <ul class="nav navbar-nav">
 				  {% if user and user.is_authenticated %}				  
-					  <li role="presentation" {% if request.path == "/" %} class="active"{% endif %}>
+					  <li {% if request.path == "/" %} class="active"{% endif %}>
 						  <a href="/">Home</a>
 					  </li> 
-					  <li role="presentation" {% if request.path == "/send_message" %} class="active"{% endif %}>
+					  <li{% if request.path == "/send_message" %} class="active"{% endif %}>
 						  <a href="/send_message">Send Message</a>
-					  </li> 
-					  <li role="presentation" {% if request.path == "/sent" %} class="active"{% endif %}>
-						  <a href="/sent">Sent Messages</a>
 					  </li>
-					  <li role="presentation" {% if request.path == "/received" %} class="active"{% endif %}>
-						  <a href="/received">Received Messages</a>
-					  </li>
-					  <li role="presentation">
+					  <li>
 						  <a href="/admin">Admin</a>
 					  </li> 					  					  
-					  <li role="presentation">
+					  <li>
 						  <a href="{{ url_for('security.logout') }}">Logout</a>
 					  </li> 					  
 				  {% else %}
@@ -44,13 +41,11 @@
 					  	<a href="{{ url_for('security.login') }}" class="active">Login</a>
 					  </li>
 				  {% endif %}
-				  </ul> 
-			  </div>
-			  <div class="col-md-8">{% block content %}{% endblock %}</div>
+				  </ul>
+	  </div>
+	</nav>
+      			  <div class="col-md-12">{% block content %}{% endblock %}</div>
 
-
-	  </div>	  
-      
     </div>
     <!-- scripts -->
     <script src="//code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
