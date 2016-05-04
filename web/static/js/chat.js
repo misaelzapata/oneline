@@ -54,6 +54,8 @@ function newMessage() {
 var updater = {
     socket: null,
 
+    current_op : $("#current-op"),
+
     current_client: null,
 
     client_list: $("#client-list"),
@@ -70,25 +72,59 @@ var updater = {
             strategy = {
                 "new_message_alert": function(message){$("#request-client").css("display", "block")},
                 "operators_status": function(message){updater.updateOperatorList(message)},
-                "new_message": function(message){updater.dealWithClient(message);},
+                "new_message": function(message){updater.dealWithClient(message)},
                 "new_client": function(message){updater.addOrUpdateClient(message)},
+                "send_contact_request": function(message){updater.operatorRequest(message)},
+                "response_contact_request": function(message){updater.responseToContactRequest(message)},
             }
             strategy[response.type](response);
         }
     },
 
-    appendOperator: function(data){
+    responseToContactRequest: function(message){
+        alert("Your request to " +message.to_operator_id + " to deal with " + message.contact + "has been: " + message.status);
+    },
 
-        updater.operator_list.prepend($("<hr>", {class:"hr-clas-low"}));
-        var operator_dom = $('<div>', {style:"cursor:pointer;", id:data._id});
-        var operator_data_dom = $('<img/>',
-                                {src:"static/img/user.png",
-                                 alt:"bootstrap Chat box user image",
-                                 class:"img-circle"});
-        operator_dom.html(" - " + data.first_name + " " + data.last_name);
-        operator_dom.prepend(operator_data_dom);
-        operator_dom.click(function(e){alert("coming soon!")});
-        updater.operator_list.prepend(operator_dom);
+    operatorRequest: function(message){
+        var status = confirm("Operator: " + message.from_operator_id + " wants you to deal with client : " + message.contact + " and he says: " + message.message);
+        if (status == true){
+            message.type = "response_contact_request";
+            message.status = "accepted";
+            updater.socket.send(JSON.stringify(response));
+        }else{
+            message.type = "response_contact_request";
+            message.status = "denied";
+            updater.socket.send(JSON.stringify(response));
+        }
+    },
+
+    passClientToOperator: function(operator){
+        if (updater.current_client != null){
+
+            var message = prompt("Are you sure you want to send the client " + updater.current_client + " to the operator " + $(operator).attr("id"))
+                if (message != null) {
+                    var request = {"type":"request_contact_to_operator", "message": message,
+                                   "contact": updater.current_client, "to_operator_id":$(operator).attr("id")}
+                    updater.socket.send(JSON.stringify(request));
+                }
+        }
+    },
+
+    appendOperator: function(data){
+        console.log(data);
+        if(data._id == updater.current_op.attr("id")){
+            status = updater.operator_list.prepend($("<hr>", {class:"hr-clas-low"}));
+            var operator_dom = $('<div>', {style:"cursor:pointer;", name:data._id});
+            var operator_data_dom = $('<img/>',
+                                    {src:"static/img/user.png",
+                                     alt:"bootstrap Chat box user image",
+                                     name: data._id,
+                                     class:"img-circle"});
+            operator_dom.html(" - " + data.first_name + " " + data.last_name);
+            operator_dom.prepend(operator_data_dom);
+            operator_dom.click(function(e){updater.passClientToOperator(e.target)});
+            updater.operator_list.prepend(operator_dom);
+        }
     },
 
     updateOperatorList: function(message){
