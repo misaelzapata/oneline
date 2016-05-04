@@ -235,6 +235,8 @@ def init_login():
 # Flask views
 @app.route('/')
 def index():
+    if not login.current_user.is_authenticated:
+        return redirect(url_for('user_login'))
     received = ReceiveLog.objects.all()
     resp = make_response(render_template(
                          'index.html',
@@ -374,7 +376,7 @@ def user_login():
         # permission to access the `next` url
         #if not next_is_valid(next):
         #    return flask.abort(400)
-        redirect_to_index_or_next = redirect(next or flask.url_for('index'))
+        redirect_to_index_or_next = redirect(next or flask.url_for('send_message'))
         response = app.make_response(redirect_to_index_or_next)
         response.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
         return response
