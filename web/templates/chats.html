@@ -1,0 +1,30 @@
+{% extends "_base.html" %}
+{% block content %}
+<div class="text-center">
+    <h5>Chats History</h5>
+</div>
+<br>
+{% for contact, chat in chats.iteritems() %}
+    Contact {{contact}}:
+    <table class="table table-striped"> 
+        <thead> 
+            <tr> 
+                <th>#</th> 
+                <th>Contact</th> 
+                <th>Message</th> 
+            </tr> 
+        </thead> 
+        <tbody> 
+            <tr> 
+                <th scope="row">{{chat._id}}</th> 
+                <td>
+                    <strong>{{chat.created}}</strong> - <em>{%if chat.user %}Operador:{% else %}Cliente:{% endif %}</em>
+                </td> 
+                <td>
+                    {{chat.message}}
+                </td> 
+            </tr>
+        </tbody> 
+    </table>
+{% endfor %}
+{% endblock %}

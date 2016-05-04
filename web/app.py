@@ -264,6 +264,26 @@ def received():
         received=received)
 
 
+@app.route('/chats_history')
+def chats_history():
+    from pymongo import MongoClient
+    from flask import Response
+    from dateutil import parser
+    client = MongoClient(host=app.config["MONGODB_HOST"],
+                         port=app.config["MONGODB_PORT"])
+    dbz = client[app.config["MONGODB_DB"]]
+    chats = {}
+    contacts = dbz['incoming_messages'].distinct("contact")
+    for contact in contacts:
+        incoming = list(dbz['incoming_messages'].find({"contact": contact}))
+        outgoing = list(dbz['outgoing_messages'].find({"contact": contact}))
+        conversation = incoming + outgoing
+        conversation.sort(key=lambda chat: parser.parse(chat["created"]))
+        chats[contact] = conversation
+    print chats
+    return render_template( 'chats.html', chats=chats)
+
+
 @app.route('/history')
 def history():
     # Feito :<
