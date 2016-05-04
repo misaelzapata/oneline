@@ -16,6 +16,8 @@ from constants import INCOMING_MESSAGES, OUTGOING_MESSAGES, PENDING_CLIENTS, \
 OPERATORS = {}
 # format {'contact_jid':'operator_id'}
 CONTACTS = {}
+# 
+PASS_TO_OPERATOR = {}
 
 _CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
 CONF = get_config(_CONF)
@@ -46,7 +48,7 @@ class IndexHandler(web.RequestHandler):
         s = TimestampSigner(CONF.SECRET)
         # test test test
         self.set_cookie(CONF.OPERATOR_ID_COOKIE,
-                        s.sign('5720eabb21c93751593f7a89'))
+                        s.sign('572a379621c9371635116447'))
         self.render("status.html")
 
 
@@ -95,8 +97,32 @@ class SocketHandler(websocket.WebSocketHandler):
                 logging.info('Outgoing message sent to queue.')
             elif msg['type'] == 'get_next_client':
                 self._get_next_client(self)
-            elif msg['type'] == 'pass_contact_to_operator':
-                pass
+            elif msg['type'] == 'request_contact_to_operator':
+                logging.info('Request contact to operator: %s' % msg)
+                request = {'type':'send_contact_request',
+                           'contact':msg['contact'],
+                           'from_operator_id':self._get_operator_id(self),
+                           'to_operator_id':msg['to_operator_id'],
+                           'status':'pending',
+                           'message':msg['message']}
+                dump = json.dumps(request)    
+                OPERATORS[msg['to_operator_id']].write_message(dump)
+                PASS_TO_OPERATOR[msg['contact']] = request
+                logging.info('Request contact to operator response: %s' % \
+                             request)
+            elif msg['type'] == 'response_contact_request':
+                logging.info('Response contact to operator: %s' % msg)
+                request = PASS_TO_OPERATOR[msg['contact']]
+                request['status'] = msg['status']
+                if msg['status'] == 'accepted':
+                    data = {'type':'new_client', 'contact':request['contact']}
+                    dump = json.dumps(data)
+                    OPERATORS[request['to_operator_id']].write_message(dump)
+                dump = json.dumps(request)
+                OPERATORS[request['from_operator_id']].write_message(dump)
+                PASS_TO_OPERATOR.pop(msg['contact'])
+                logging.info('Response contact to operator response: %s' % \
+                             request)
             else:
                 raise Exception('Wrong type.')
         except Exception as e:
