@@ -124,7 +124,8 @@ class SocketHandler(websocket.WebSocketHandler):
                     OPERATORS[request['to_operator_id']].write_message(dump)
                 dump = json.dumps(request)
                 OPERATORS[request['from_operator_id']].write_message(dump)
-                PASS_TO_OPERATOR.pop(msg['contact'])
+                if msg['contact'] in PASS_TO_OPERATOR:
+                    del PASS_TO_OPERATOR[msg['contact']]
                 logging.info('Response contact to operator response: %s' % \
                              request)
             else:
