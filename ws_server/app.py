@@ -111,6 +111,8 @@ class SocketHandler(websocket.WebSocketHandler):
                          request)
         elif msg['type'] == 'response_contact_request':
             logging.info('Response contact to operator: %s' % msg)
+            if msg['contact'] not in PASS_TO_OPERATOR:
+                return
             request = PASS_TO_OPERATOR[msg['contact']]
             request['status'] = msg['status']
             if msg['status'] == 'accepted':
