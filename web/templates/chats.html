@@ -15,15 +15,17 @@
             </tr> 
         </thead> 
         <tbody> 
-            <tr> 
-                <th scope="row">{{ chat['_id'] }}</th> 
-                <td>
-                    <strong>{{chat['created']}}</strong> - <em>{%if chat['user'] %}Operador:{% else %}Cliente:{% endif %}</em>
-                </td> 
-                <td>
-                    {{chat['message']}}
-                </td> 
-            </tr>
+            {% for c in chat %}
+                <tr> 
+                    <th scope="row">{{ c['_id'] }}</th> 
+                    <td>
+                        <strong>{{c['created']}}</strong> - <em>{%if c['user'] %}Operador:{% else %}Cliente:{% endif %}</em>
+                    </td> 
+                    <td>
+                        {{chat['m']}}
+                    </td> 
+                </tr>
+            {% endfor %}
         </tbody> 
     </table>
 {% endfor %}
