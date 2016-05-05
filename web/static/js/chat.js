@@ -111,8 +111,7 @@ var updater = {
     },
 
     appendOperator: function(data){
-        console.log(data);
-        if(data._id == updater.current_op.attr("id")){
+        if(data._id != updater.current_op.attr("value")){
             status = updater.operator_list.prepend($("<hr>", {class:"hr-clas-low"}));
             var operator_dom = $('<div>', {style:"cursor:pointer;", name:data._id});
             var operator_data_dom = $('<img/>',
