@@ -92,13 +92,13 @@ var updater = {
         if (status == true){
             message.type = "response_contact_request";
             message.status = "accepted";
-            console.log(response);
-            updater.socket.send(JSON.stringify(response));
+            console.log(message);
+            updater.socket.send(JSON.stringify(message));
         }else{
             message.type = "response_contact_request";
             message.status = "denied";
-            console.log(response);
-            updater.socket.send(JSON.stringify(response));
+            console.log(message);
+            updater.socket.send(JSON.stringify(message));
         }
     },
 
