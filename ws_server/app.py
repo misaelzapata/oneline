@@ -74,69 +74,61 @@ class SocketHandler(websocket.WebSocketHandler):
         self._update_operators_status()
 
     def on_message(self, message):
-        try:
-            msg = json.loads(message)
-            if msg['type'] == 'echo':
-                self.write_message(u"You said: %s." % message)
-            elif msg['type'] == 'listen_contact':
-                operator_id = self._get_operator_id(self)
-                CONTACTS[msg.contact] = operator_id
-            elif msg['type'] == 'response_to_contact':
-                logging.info('Response to contact: %s' % msg)
-                operator_id = self._get_operator_id(self)
-                omsg = self._save_outgoing_message(msg, operator_id)
-                if not omsg:
-                    raise Exception('unable to save outgoing message %s' % msg)
-                omsg['_id'] = str(omsg['_id'])
-                om_channel.basic_publish(exchange='',
-                                         routing_key=OUTGOING_MESSAGES,
-                                         body=json.dumps(omsg),
-                                         properties=pika.BasicProperties(
-                                             delivery_mode = 2,
-                                         ))
-                logging.info('Outgoing message sent to queue.')
-            elif msg['type'] == 'get_next_client':
-                self._get_next_client(self)
-            elif msg['type'] == 'request_contact_to_operator':
-                logging.info('Request contact to operator: %s' % msg)
-                request = {'type':'send_contact_request',
-                           'contact':msg['contact'],
-                           'from_operator_id':self._get_operator_id(self),
-                           'to_operator_id':msg['to_operator_id'],
-                           'status':'pending',
-                           'message':msg['message']}
-                dump = json.dumps(request)    
-                OPERATORS[msg['to_operator_id']].write_message(dump)
-                PASS_TO_OPERATOR[msg['contact']] = request
-                logging.info('Request contact to operator response: %s' % \
-                             request)
-            elif msg['type'] == 'response_contact_request':
-                logging.info('Response contact to operator: %s' % msg)
-                request = PASS_TO_OPERATOR[msg['contact']]
-                request['status'] = msg['status']
-                if msg['status'] == 'accepted':
-                    data = {'type':'new_client', 'contact':request['contact']}
-                    dump = json.dumps(data)
-                    logging.info('CONTACTS dump: %s' % CONTACTS)
-                    if request['contact'] in CONTACTS:
-                        del CONTACTS[request['contact']]
-                    logging.info('CONTACTS dump again: %s' % CONTACTS)
-                    OPERATORS[request['to_operator_id']].write_message(dump)
-                dump = json.dumps(request)
-                OPERATORS[request['from_operator_id']].write_message(dump)
-                if msg['contact'] in PASS_TO_OPERATOR:
-                    del PASS_TO_OPERATOR[msg['contact']]
-                logging.info('Response contact to operator response: %s' % \
-                             request)
-            else:
-                raise Exception('Wrong type.')
-        except Exception as e:
-            logging.error('Error receiving message: %s. Message: %s' % \
-                          (e, message))
-            data = json.dumps({'type':'request_failed',
-                               'message':str(e),
-                               'data':message})
-            self.write_message(data)
+        msg = json.loads(message)
+        if msg['type'] == 'echo':
+            self.write_message(u"You said: %s." % message)
+        elif msg['type'] == 'listen_contact':
+            operator_id = self._get_operator_id(self)
+            CONTACTS[msg.contact] = operator_id
+        elif msg['type'] == 'response_to_contact':
+            logging.info('Response to contact: %s' % msg)
+            operator_id = self._get_operator_id(self)
+            omsg = self._save_outgoing_message(msg, operator_id)
+            if not omsg:
+                raise Exception('unable to save outgoing message %s' % msg)
+            omsg['_id'] = str(omsg['_id'])
+            om_channel.basic_publish(exchange='',
+                                     routing_key=OUTGOING_MESSAGES,
+                                     body=json.dumps(omsg),
+                                     properties=pika.BasicProperties(
+                                         delivery_mode = 2,
+                                     ))
+            logging.info('Outgoing message sent to queue.')
+        elif msg['type'] == 'get_next_client':
+            self._get_next_client(self)
+        elif msg['type'] == 'request_contact_to_operator':
+            logging.info('Request contact to operator: %s' % msg)
+            request = {'type':'send_contact_request',
+                       'contact':msg['contact'],
+                       'from_operator_id':self._get_operator_id(self),
+                       'to_operator_id':msg['to_operator_id'],
+                       'status':'pending',
+                       'message':msg['message']}
+            dump = json.dumps(request)    
+            OPERATORS[msg['to_operator_id']].write_message(dump)
+            PASS_TO_OPERATOR[msg['contact']] = request
+            logging.info('Request contact to operator response: %s' % \
+                         request)
+        elif msg['type'] == 'response_contact_request':
+            logging.info('Response contact to operator: %s' % msg)
+            request = PASS_TO_OPERATOR[msg['contact']]
+            request['status'] = msg['status']
+            if msg['status'] == 'accepted':
+                data = {'type':'new_client', 'contact':request['contact']}
+                dump = json.dumps(data)
+                logging.info('CONTACTS dump: %s' % CONTACTS)
+                if request['contact'] in CONTACTS:
+                    del CONTACTS[request['contact']]
+                logging.info('CONTACTS dump again: %s' % CONTACTS)
+                OPERATORS[request['to_operator_id']].write_message(dump)
+            dump = json.dumps(request)
+            OPERATORS[request['from_operator_id']].write_message(dump)
+            if msg['contact'] in PASS_TO_OPERATOR:
+                del PASS_TO_OPERATOR[msg['contact']]
+            logging.info('Response contact to operator response: %s' % \
+                         request)
+        else:
+            raise Exception('Wrong type.')
 
     def on_close(self):
         # remove operator
