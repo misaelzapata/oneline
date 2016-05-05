@@ -1,15 +1,15 @@
 {% extends "_base.html" %}
 {% block content %}
 <div class="text-center">
-    <h5>Chats History</h5>
+    <h2>Chats History</h2>
 </div>
 <br>
 {% for contact, chat in chats.iteritems() %}
-    Contact {{contact}}:
+    <h3>Contact {{contact[:13]}}:</h3>
     <table class="table table-striped"> 
         <thead> 
             <tr> 
-                <th>#</th> 
+                <th>Date</th> 
                 <th>Contact</th> 
                 <th>Message</th> 
             </tr> 
@@ -17,13 +17,13 @@
         <tbody> 
             {% for c in chat %}
                 <tr> 
-                    <th scope="row">{{ c['_id'] }}</th> 
+                    <th>{{ c['created']|format_date }}</th> 
                     <td>
-                        <strong>{{c['created']}}</strong> - <em>{%if c['user'] %}Operador:{% else %}Cliente:{% endif %}</em>
+                        <strong>
+                            {%if c['user'] %}Operador:{% else %}Cliente:{% endif %}
+                        </strong>
                     </td> 
-                    <td>
-                        {{c['message']}}
-                    </td> 
+                    <td>{{c['message']}}</td> 
                 </tr>
             {% endfor %}
         </tbody> 

@@ -4,6 +4,8 @@ import flask
 import json
 import redis
 import werkzeug
+import dateutil
+from dateutil import parser
 from itsdangerous import TimestampSigner
 from string import Template
 from flask import Flask, g, flash
@@ -266,11 +268,17 @@ def received():
         received=received)
 
 
+@app.template_filter('format_date')
+def _jinja2_filter_datetime(date, fmt=None):
+    date = dateutil.parser.parse(date)
+    native = date.replace(tzinfo=None)
+    format='%d/%m/%Y %H:%M:%S'
+    return native.strftime(format) 
+
 @app.route('/chats_history')
 def chats_history():
     from pymongo import MongoClient
     from flask import Response
-    from dateutil import parser
     client = MongoClient(host=app.config["MONGODB_HOST"],
                          port=app.config["MONGODB_PORT"])
     dbz = client[app.config["MONGODB_DB"]]
