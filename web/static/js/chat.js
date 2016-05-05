@@ -44,6 +44,7 @@ function newMessage() {
     message["contact"] = updater.current_client;
     message["message"] = $("#message").val();
     message["operator_id"] = "(You)";
+    console.log(message);
     updater.socket.send(JSON.stringify(message));
     $("#message").val("").select();
     message["id"] = "";
@@ -69,6 +70,7 @@ var updater = {
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             var response = JSON.parse(event.data);
+            console.log(response);
             strategy = {
                 "new_message_alert": function(message){$("#request-client").css("display", "block")},
                 "operators_status": function(message){updater.updateOperatorList(message)},
@@ -90,29 +92,31 @@ var updater = {
         if (status == true){
             message.type = "response_contact_request";
             message.status = "accepted";
-            updater.socket.send(JSON.stringify(response));
+            console.log(message);
+            updater.socket.send(JSON.stringify(message));
         }else{
             message.type = "response_contact_request";
             message.status = "denied";
-            updater.socket.send(JSON.stringify(response));
+            console.log(message);
+            updater.socket.send(JSON.stringify(message));
         }
     },
 
     passClientToOperator: function(operator){
         if (updater.current_client != null){
 
-            var message = prompt("Are you sure you want to send the client " + updater.current_client + " to the operator " + $(operator).attr("id"))
+            var message = prompt("Are you sure you want to send the client " + updater.current_client + " to the operator " + $(operator).attr("name"));
                 if (message != null) {
                     var request = {"type":"request_contact_to_operator", "message": message,
-                                   "contact": updater.current_client, "to_operator_id":$(operator).attr("id")}
+                                   "contact": updater.current_client, "to_operator_id":$(operator).attr("name")}
+                    console.log(request);
                     updater.socket.send(JSON.stringify(request));
                 }
         }
     },
 
     appendOperator: function(data){
-        console.log(data);
-        if(data._id == updater.current_op.attr("id")){
+        if(data._id != updater.current_op.attr("value")){
             status = updater.operator_list.prepend($("<hr>", {class:"hr-clas-low"}));
             var operator_dom = $('<div>', {style:"cursor:pointer;", name:data._id});
             var operator_data_dom = $('<img/>',
