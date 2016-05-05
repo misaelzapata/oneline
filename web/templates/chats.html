@@ -19,7 +19,7 @@
                 <tr> 
                     <th scope="row">{{ c['_id'] }}</th> 
                     <td>
-                        <strong>{{c['created']}}</strong> - <em>{%if hasattr(c, 'user') %}Operador:{% else %}Cliente:{% endif %}</em>
+                        <strong>{{c['created']}}</strong> - <em>{%if c['user'] %}Operador:{% else %}Cliente:{% endif %}</em>
                     </td> 
                     <td>
                         {{c['message']}}
