@@ -117,6 +117,7 @@ class SocketHandler(websocket.WebSocketHandler):
                 if msg['status'] == 'accepted':
                     data = {'type':'new_client', 'contact':request['contact']}
                     dump = json.dumps(data)
+                    CONTACTS[request['contact']].pop()
                     OPERATORS[request['to_operator_id']].write_message(dump)
                 dump = json.dumps(request)
                 OPERATORS[request['from_operator_id']].write_message(dump)
