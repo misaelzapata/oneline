@@ -1,6 +1,6 @@
 # app.py
-from flask import Flask, g, flash
-from config import BaseConfig, DevConfig
+from flask import Flask, g
+from config import DevConfig
 from flask.ext.mongoengine import MongoEngine
 from flask.ext.security import Security, MongoEngineUserDatastore, \
     UserMixin, RoleMixin, login_required, utils, current_user
@@ -9,7 +9,7 @@ from flask.ext import admin, login
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_security import utils
 
-from models import User, Role, OutgoingMessage, IncomingMessage
+from models import User, Role
 
 
 app = Flask(__name__)
@@ -31,6 +31,8 @@ security = Security(app, user_datastore)
 from views import *
 
 # Create a user to test with
+
+
 @app.before_first_request
 def create_user():
     # Create the Roles "admin" and "end-user" -- unless they already exist
@@ -72,6 +74,8 @@ from admin_views import *
 def before_request():
     g.user = current_user
 # Initialize flask-login
+
+
 def init_login():
     login_manager = login.LoginManager()
     login_manager.init_app(app)

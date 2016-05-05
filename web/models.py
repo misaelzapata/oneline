@@ -1,14 +1,9 @@
 # models.py
-#from app import db
-from mongoengine import *
 from flask.ext.admin.contrib.mongoengine import ModelView
 import datetime
-from wtforms import form, fields, validators
 from flask.ext.mongoengine import Document
-from flask.ext.mongoengine import MongoEngine
 from flask.ext.security import Security, MongoEngineUserDatastore, \
     UserMixin, RoleMixin, login_required, utils, current_user
-
 from mongoengine import StringField, ListField, EmbeddedDocument, \
     EmbeddedDocumentField, IntField, EmailField, DateTimeField, \
     ReferenceField, CASCADE, PolygonField, SortedListField, DictField, \
@@ -16,6 +11,8 @@ from mongoengine import StringField, ListField, EmbeddedDocument, \
 
 # Create user model. For simplicity, it will store passwords in plain text.
 # Obviously that's not right thing to do in real world application.
+
+
 class Role(Document, RoleMixin):
     name = StringField(max_length=80, unique=True)
     description = StringField(max_length=255)
@@ -46,6 +43,7 @@ class User(Document, UserMixin):
     def __unicode__(self):
         return self.username
     # Flask-Login integration
+
     def is_authenticated(self):
         return True
 
@@ -108,7 +106,6 @@ class MyModelView(ModelView):
 
 class UserView(ModelView):
     column_filters = ['login', 'email']
-
     column_searchable_list = ('login', 'email')
 
 

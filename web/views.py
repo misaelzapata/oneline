@@ -1,6 +1,5 @@
-import dateutil
-import flask
-from flask import request, render_template, url_for, redirect, make_response
+from bson import json_util
+from flask import request, render_template, url_for, redirect, make_response, Response
 from flask import Flask, g, flash
 from flask.ext import admin, login
 from itsdangerous import TimestampSigner
@@ -8,6 +7,7 @@ from dateutil import parser
 from app import app
 from models import *
 from admin_views import LoginForm
+
 
 # Flask views
 @app.route('/')
@@ -31,7 +31,7 @@ def index():
 
 @app.template_filter('format_date')
 def _jinja2_filter_datetime(date, fmt=None):
-    date = dateutil.parser.parse(date)
+    date = parser.parse(date)
     native = date.replace(tzinfo=None)
     format = '%d/%m/%Y %H:%M:%S'
     return native.strftime(format) 
@@ -39,16 +39,11 @@ def _jinja2_filter_datetime(date, fmt=None):
 
 @app.route('/chats_history')
 def chats_history():
-    from pymongo import MongoClient
-    from flask import Response
-    client = MongoClient(host=app.config["MONGODB_HOST"],
-                         port=app.config["MONGODB_PORT"])
-    dbz = client[app.config["MONGODB_DB"]]
     chats = {}
-    contacts = dbz['incoming_messages'].distinct("contact")
+    contacts = IncomingMessage.objects.all().distinct("contact")
     for contact in contacts:
-        incoming = list(dbz['incoming_messages'].find({"contact": contact}))
-        outgoing = list(dbz['outgoing_messages'].find({"contact": contact}))
+        incoming = list(IncomingMessage.objects(contact=contact))
+        outgoing = list(OutgoingMessage.objects(contact=contact))
         conversation = incoming + outgoing
         conversation.sort(key=lambda chat: parser.parse(chat["created"]))
         chats[contact] = conversation
@@ -57,17 +52,10 @@ def chats_history():
 
 @app.route('/history')
 def history():
-    # Feito :<
-    from pymongo import MongoClient
-    from flask import Response
-    client = MongoClient(host='mongo', port=27017)
-    dbz = client['oneline']
     contact = request.args.get("contact")
-    incoming = list(dbz['incoming_messages'].find({"contact": contact}))
-    outgoing = list(dbz['outgoing_messages'].find({"contact": contact}))
-    from bson import json_util
+    incoming = list(IncomingMessage.objects(contact=contact))
+    outgoing = list(OutgoingMessage.objects(contact=contact))
     conversation = incoming + outgoing
-    from dateutil import parser
     conversation.sort(key=lambda chat: parser.parse(chat["created"]))
     resp = Response(response=json_util.dumps({"conversation": conversation}),
                     status=200,
@@ -77,13 +65,7 @@ def history():
 
 @app.route('/get_clients_operator')
 def get_clients_operator():
-    # Feito :<
-    from pymongo import MongoClient
-    from flask import Response
-    client = MongoClient(host='mongo', port=27017)
-    dbz = client['oneline']
-    outgoing = dbz['outgoing_messages'].distinct("contact", {"operator_id": str(login.current_user.id)})
-    from bson import json_util
+    outgoing = OutgoingMessage.objects(operator_id=str(login.current_user.id)).distinct("contact")
     resp = Response(response=json_util.dumps({"clients": outgoing}),
                     status=200,
                     mimetype="application/json")
@@ -110,15 +92,15 @@ def user_login():
     if request.method == 'POST' and form.validate():
         user = form.get_user()
         login.login_user(user)
-        flask.flash('Logged in successfully.')
+        flash('Logged in successfully.')
         s = TimestampSigner(app.config["SECRET"])
         signature = s.sign(user.get_id())
-        next = flask.request.args.get('next')
+        next = request.args.get('next')
         # next_is_valid should check if the user has valid
         # permission to access the `next` url
         #if not next_is_valid(next):
         #    return flask.abort(400)
-        redirect_to_index_or_next = redirect(next or flask.url_for('send_message'))
+        redirect_to_index_or_next = redirect(next or url_for('send_message'))
         response = app.make_response(redirect_to_index_or_next)
         response.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
         return response
