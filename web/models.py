@@ -1,4 +1,3 @@
-# models.py
 from flask.ext.admin.contrib.mongoengine import ModelView
 import datetime
 from flask.ext.mongoengine import Document

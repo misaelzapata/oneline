@@ -82,12 +82,12 @@ class MyAdminIndexView(admin.AdminIndexView):
         self._template_args['link'] = link
         return super(MyAdminIndexView, self).index()
 
-
     @expose('/logout/')
     def logout_view(self):
         login.logout_user()
         return redirect(url_for('.index'))
-        
+
+
 class UserView(MyAdminModelView):
 
 

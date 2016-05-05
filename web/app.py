@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, g
 from config import DevConfig
 from flask.ext.mongoengine import MongoEngine
@@ -70,17 +69,19 @@ def create_user():
 # Views
 from admin_views import *
 
+
 @app.before_request
 def before_request():
     g.user = current_user
+
+
 # Initialize flask-login
-
-
 def init_login():
     login_manager = login.LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = "user_login"
     # Create user loader function
+    
     @login_manager.user_loader
     def load_user(user_id):
         return User.objects(id=user_id).first()
