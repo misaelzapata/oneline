@@ -69,6 +69,7 @@ var updater = {
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             var response = JSON.parse(event.data);
+            console.log(response);
             strategy = {
                 "new_message_alert": function(message){$("#request-client").css("display", "block")},
                 "operators_status": function(message){updater.updateOperatorList(message)},
@@ -104,7 +105,7 @@ var updater = {
             var message = prompt("Are you sure you want to send the client " + updater.current_client + " to the operator " + $(operator).attr("id"))
                 if (message != null) {
                     var request = {"type":"request_contact_to_operator", "message": message,
-                                   "contact": updater.current_client, "to_operator_id":$(operator).attr("id")}
+                                   "contact": updater.current_client, "to_operator_id":$(operator).attr("name")}
                     updater.socket.send(JSON.stringify(request));
                 }
         }
