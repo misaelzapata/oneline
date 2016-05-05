@@ -44,6 +44,7 @@ function newMessage() {
     message["contact"] = updater.current_client;
     message["message"] = $("#message").val();
     message["operator_id"] = "(You)";
+    console.log(message);
     updater.socket.send(JSON.stringify(message));
     $("#message").val("").select();
     message["id"] = "";
@@ -91,10 +92,12 @@ var updater = {
         if (status == true){
             message.type = "response_contact_request";
             message.status = "accepted";
+            consolelog(response);
             updater.socket.send(JSON.stringify(response));
         }else{
             message.type = "response_contact_request";
             message.status = "denied";
+            console.log(response);
             updater.socket.send(JSON.stringify(response));
         }
     },
@@ -106,6 +109,7 @@ var updater = {
                 if (message != null) {
                     var request = {"type":"request_contact_to_operator", "message": message,
                                    "contact": updater.current_client, "to_operator_id":$(operator).attr("name")}
+                    console.log(request);
                     updater.socket.send(JSON.stringify(request));
                 }
         }
