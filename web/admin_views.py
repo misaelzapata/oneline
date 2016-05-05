@@ -8,6 +8,7 @@ from flask import Flask, g, flash
 from models import *
 from app import app
 
+
 class MyAdminModelView(ModelView):
 
     def is_accessible(self):
@@ -129,6 +130,7 @@ class RoleView(MyAdminModelView):
 
     column_filters = ['name']
 
+
 class ContactView(MyAdminModelView):
     column_filters = ['name', 'phone']
 
@@ -147,4 +149,4 @@ admin.add_view(ContactView(Contact))
 admin.add_view(MessageView(Message))
 admin.add_view(MyAdminModelView(OutgoingMessage))
 admin.add_view(MyAdminModelView(IncomingMessage))
-    
+

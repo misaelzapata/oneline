@@ -1,11 +1,14 @@
+import dateutil
 import flask
 from flask import request, render_template, url_for, redirect, make_response
 from flask import Flask, g, flash
 from flask.ext import admin, login
 from itsdangerous import TimestampSigner
+from dateutil import parser
 from app import app
 from models import *
 from admin_views import LoginForm
+
 # Flask views
 @app.route('/')
 def index():
@@ -25,27 +28,14 @@ def index():
     ############## end nigga stuff ################
     return resp
 
-@app.route('/sent')
-def sent():
-    sent = SendLog.objects.all()
-    return render_template('sent.html', user=login.current_user, sent=sent)
-
-
-@app.route('/received')
-def received():
-    received = ReceiveLog.objects.all()
-    return render_template(
-        'received.html',
-        user=login.current_user,
-        received=received)
-
 
 @app.template_filter('format_date')
 def _jinja2_filter_datetime(date, fmt=None):
     date = dateutil.parser.parse(date)
     native = date.replace(tzinfo=None)
-    format='%d/%m/%Y %H:%M:%S'
+    format = '%d/%m/%Y %H:%M:%S'
     return native.strftime(format) 
+
 
 @app.route('/chats_history')
 def chats_history():
@@ -62,8 +52,7 @@ def chats_history():
         conversation = incoming + outgoing
         conversation.sort(key=lambda chat: parser.parse(chat["created"]))
         chats[contact] = conversation
-    print chats
-    return render_template( 'chats.html', chats=chats)
+    return render_template('chats.html', chats=chats)
 
 
 @app.route('/history')
@@ -100,43 +89,16 @@ def get_clients_operator():
                     mimetype="application/json")
     return resp
 
-@app.route('/send_message', methods=('GET', 'POST'))
-def send_message():
-    if request.method == 'POST':
-        for r in request.form.getlist("contact"):
-            id = request.form.get('message[{}]'.format(r))
-            message = Message.objects.get(id=id)
-            new_message = {}
-            contact = Contact.objects.get(id=r)
-            today = datetime.datetime.now()
-            if message.slug == 'mytrip':
-                s = Template(message.message)
-                s = s.safe_substitute(
-                    name=contact.name,
-                    status='ALL OK',
-                    date=today.strftime('%Y-%m-%d'))
-                new_message['body'] = str(s)
-            else:
-                new_message['body'] = str(message.message)
-            log = SendLog()
-            log.contact = contact
-            log.message = message
-            log.raw_message = new_message['body']
-            log_id = log.save()
-            new_message['number'] = contact.phone
-            new_message['log'] = str(log.id)
-            _redis.publish('message_ready', json.dumps(new_message))
-            print new_message
-        return redirect(url_for('index'))
-    else:
-        messages = Message.objects.all()
-        contacts = Contact.objects.all()
-        return render_template(
-            'send_message.html',
-            user=login.current_user,
-            messages=messages,
-            contacts=contacts)
 
+@app.route('/send_message')
+def send_message():
+    messages = Message.objects.all()
+    contacts = Contact.objects.all()
+    return render_template(
+        'send_message.html',
+        user=login.current_user,
+        messages=messages,
+        contacts=contacts)
 
 
 @app.route('/login/', methods=['GET', 'POST'])
@@ -160,19 +122,6 @@ def user_login():
         response = app.make_response(redirect_to_index_or_next)
         response.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
         return response
-    return render_template('form.html', form=form)
-
-@app.route('/register/', methods=('GET', 'POST'))
-def register_view():
-    form = RegistrationForm(request.form)
-    if request.method == 'POST' and form.validate():
-        user = User()
-        form.populate_obj(user)
-        user.save()
-
-        login.login_user(user)
-        return redirect(url_for('index'))
-
     return render_template('form.html', form=form)
 
 

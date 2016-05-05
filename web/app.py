@@ -1,33 +1,15 @@
 # app.py
-import datetime
-import flask
-import json
-import redis
-import werkzeug
-import dateutil
-from dateutil import parser
-from itsdangerous import TimestampSigner
-from string import Template
 from flask import Flask, g, flash
-from flask import request, render_template, url_for, redirect, make_response
 from config import BaseConfig, DevConfig
-from flask.ext.mongoengine import MongoEngine
-from flask.ext.admin import Admin
 from flask.ext.mongoengine import MongoEngine
 from flask.ext.security import Security, MongoEngineUserDatastore, \
     UserMixin, RoleMixin, login_required, utils, current_user
 
 from flask.ext import admin, login
-from flask.ext.admin import helpers
-
-import flask_admin as flask_admin
-
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_security import utils
 
-
-from models import Contact, Message, User, Role, OutgoingMessage, IncomingMessage
-from wtforms.fields import PasswordField
+from models import User, Role, OutgoingMessage, IncomingMessage
 
 
 app = Flask(__name__)
@@ -98,9 +80,6 @@ def init_login():
     @login_manager.user_loader
     def load_user(user_id):
         return User.objects(id=user_id).first()
-
-
-
 
 
 if __name__ == '__main__':
