@@ -92,7 +92,7 @@ var updater = {
         if (status == true){
             message.type = "response_contact_request";
             message.status = "accepted";
-            consolelog(response);
+            console.log(response);
             updater.socket.send(JSON.stringify(response));
         }else{
             message.type = "response_contact_request";
@@ -105,7 +105,7 @@ var updater = {
     passClientToOperator: function(operator){
         if (updater.current_client != null){
 
-            var message = prompt("Are you sure you want to send the client " + updater.current_client + " to the operator " + $(operator).attr("id"))
+            var message = prompt("Are you sure you want to send the client " + updater.current_client + " to the operator " + $(operator).attr("name"));
                 if (message != null) {
                     var request = {"type":"request_contact_to_operator", "message": message,
                                    "contact": updater.current_client, "to_operator_id":$(operator).attr("name")}
