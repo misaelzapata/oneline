@@ -119,7 +119,7 @@ class SocketHandler(websocket.WebSocketHandler):
                     dump = json.dumps(data)
                     logging.info('CONTACTS dump: %s' % CONTACTS)
                     if request['contact'] in CONTACTS:
-                        CONTACTS[request['contact']].pop()
+                        del CONTACTS[request['contact']]
                     logging.info('CONTACTS dump again: %s' % CONTACTS)
                     OPERATORS[request['to_operator_id']].write_message(dump)
                 dump = json.dumps(request)
