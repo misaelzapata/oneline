@@ -78,18 +78,21 @@ class Message(Document):
     date_modified = DateTimeField(default=datetime.datetime.now)
 
 
-class SendLog(Document):
-    contact = ReferenceField(Contact)
-    message = ReferenceField(Message)
-    sent = BooleanField(default=False)
-    date_sent = DateTimeField(default=datetime.datetime.now)
+class OutgoingMessage(Document):
+    contact = StringField()
+    operator_id = StringField()
+    message = StringField()    
+    sent = BooleanField(default='false')
+    date_sent = DateTimeField()
+    created = DateTimeField(default=datetime.datetime.now)
 
 
-class ReceiveLog(Document):
-    user = StringField()
+class IncomingMessage(Document):
     message = StringField()
+    contact = StringField()
     status = StringField(choices=['read', 'unread'])
-    date_received = DateTimeField(default=datetime.datetime.now)
+    modified = DateTimeField()    
+    created = DateTimeField(default=datetime.datetime.now)
 
 # Create customized model view class
 

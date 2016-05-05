@@ -30,7 +30,7 @@ from wtforms import form, fields, validators
 from wtforms.fields import PasswordField
 from flask.ext.admin import helpers, expose
 
-from models import Contact, Message, User, Role, SendLog, ReceiveLog
+from models import Contact, Message, User, Role, OutgoingMessage, IncomingMessage
 
 from wtforms.fields import PasswordField
 
@@ -422,8 +422,8 @@ class MessageView(MyAdminModelView):
 admin.add_view(UserView(User))
 admin.add_view(ContactView(Contact))
 admin.add_view(MessageView(Message))
-admin.add_view(MyAdminModelView(SendLog))
-admin.add_view(MyAdminModelView(ReceiveLog))
+admin.add_view(MyAdminModelView(OutgoingMessage))
+admin.add_view(MyAdminModelView(IncomingMessage))
 
 if __name__ == '__main__':
     init_login()
