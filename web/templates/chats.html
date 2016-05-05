@@ -16,12 +16,12 @@
         </thead> 
         <tbody> 
             <tr> 
-                <th scope="row">{{chat._id}}</th> 
+                <th scope="row">{{ chat['_id'] }}</th> 
                 <td>
-                    <strong>{{chat.created}}</strong> - <em>{%if chat.user %}Operador:{% else %}Cliente:{% endif %}</em>
+                    <strong>{{chat['created']}}</strong> - <em>{%if chat['user'] %}Operador:{% else %}Cliente:{% endif %}</em>
                 </td> 
                 <td>
-                    {{chat.message}}
+                    {{chat['message']}}
                 </td> 
             </tr>
         </tbody> 
