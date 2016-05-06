@@ -1,7 +1,7 @@
 from dateutil import parser
 from itsdangerous import TimestampSigner
 from bson import json_util
-from flask import flash, make_response, redirect, render_template, request, Response, url_for
+from flask import flash, g, make_response, redirect, render_template, request, Response, url_for
 from flask.ext import admin, login
 from web import app
 from web.admin_views import LoginForm
@@ -45,7 +45,7 @@ def chats_history():
         conversation = incoming + outgoing
         conversation.sort(key=lambda chat: parser.parse(chat["created"]))
         chats[contact] = conversation
-    return render_template('chats.html', chats=chats)
+    return render_template('chats.html', chats=chats, user=login.current_user)
 
 
 @app.route('/history')
