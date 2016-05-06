@@ -31,6 +31,10 @@ from views import *
 
 @app.before_first_request
 def create_user():
+    """
+        This is executed the first time the app runs, adds a default user and admins,
+        sets and creates the roles too
+    """
     # Create the Roles "admin" and "end-user" -- unless they already exist
     user_datastore.find_or_create_role(name='admin', description='Administrator')
     user_datastore.find_or_create_role(name='operator', description='Operator')
@@ -70,11 +74,13 @@ from admin_views import *
 
 @app.before_request
 def before_request():
+    """ Ensure to set the current user for every request """
     g.user = current_user
 
 
 # Initialize flask-login
 def init_login():
+    """ Initiate Flask-login  """
     login_manager = login.LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = "user_login"
@@ -82,6 +88,7 @@ def init_login():
 
     @login_manager.user_loader
     def load_user(user_id):
+        """ Query mongo to retrieve the user"""
         return User.objects(id=user_id).first()
 
 

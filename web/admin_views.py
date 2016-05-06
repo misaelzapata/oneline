@@ -8,7 +8,9 @@ from models import Contact, IncomingMessages, Message, OutgoingMessages, User
 
 
 class MyAdminModelView(ModelView):
-
+    """
+    Basic Mixing, use it on every view of the admin to ensure that the view can only be accessed by admins.
+    """
     def is_accessible(self):
         if login.current_user.is_authenticated:
             if login.current_user.has_role("admin"):
@@ -16,7 +18,7 @@ class MyAdminModelView(ModelView):
         return False
 
 
-# Define login and registration forms (for flask-login)
+# Define login forms (for flask-login)
 class LoginForm(form.Form):
     login = fields.TextField(validators=[validators.required()])
     password = fields.PasswordField(validators=[validators.required()])
@@ -33,21 +35,11 @@ class LoginForm(form.Form):
     def get_user(self):
         return User.objects(email=self.login.data).first()
 
-
-class RegistrationForm(form.Form):
-    login = fields.TextField(validators=[validators.required()])
-    email = fields.TextField()
-    password = fields.PasswordField(validators=[validators.required()])
-
-    def validate_login(self, field):
-        if db.session.query(User).filter_by(login=self.login.data).count() > 0:
-            raise validators.ValidationError('Duplicate username')
-
 # Customized admin views
 
 
 class MyAdminIndexView(admin.AdminIndexView):
-
+    # sadly we cannot use the MyAdminModelView mixin as it overrides some required functionality
     def is_accessible(self):
         if login.current_user.is_authenticated:
             return login.current_user.has_role("admin")
@@ -118,18 +110,17 @@ class UserView(MyAdminModelView):
 
 
 class RoleView(MyAdminModelView):
-
     column_filters = ['name']
 
 
 class ContactView(MyAdminModelView):
     column_filters = ['name', 'phone']
-
     column_searchable_list = ('name', 'phone')
 
 
 class MessageView(MyAdminModelView):
     column_filters = ['name']
+
 
 admin = admin.Admin(
     app,
