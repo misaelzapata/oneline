@@ -11,13 +11,6 @@
                         Contactos
                     </div>
                     <div class="panel-body chat-box-online" id="client-list">
-                        {% for c in contacts %}
-                        <div class="chat-box-online-left"  name='{{c.id}}'>
-                            <img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
-                            {{c.name}} - {{c.phone}}
-                        </div>
-                        <hr class="hr-clas-low" />
-						{% endfor %}
                     </div>
 
                 </div>
@@ -35,16 +28,6 @@
                             </div>
                     </div>
                     <div id="inbox" class="panel-body chat-box-main">
-                        {% for message in messages %}
-                            <div class="chat-box-right message" id="m{{ message.id }}">
-								{{ message.body }}
-							</div>
-							<div class="chat-box-name-right">
-								<img src="static/img/user.png" alt="bootstrap Chat box user image" class="img-circle" />
-								- {{ message.username }}
-							</div>
-							<hr class="hr-clas" />
-                        {% endfor %}
                     </div>
                     <div id="input" class="chat-box-footer">
                             <div class="input-group">

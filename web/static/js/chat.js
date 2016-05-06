@@ -32,6 +32,21 @@ $(document).ready(function() {
             return false;
         }
     });
+
+    $("#send-bulk").click(function(){
+        var bulk = {};
+        $("input[name=contact]:checked").each(function(){
+            bulk[$(this).val()] = $("select[name='message[" + $(this).val() + "]']").val();
+        });
+        $.ajax({
+              type: "POST",
+              url: location.host + ":8080/send_messages",
+              data: JSON.stringify(bulk),
+              success: function(){alert("All your messages were sent!")},
+              error: function(){alert("Ups! something went wrong!")}
+         });
+    });
+
     $("#message").select();
     // To do- update client_list, operator list, and set current_client_focus to last message, and add on click event
     updater.start();

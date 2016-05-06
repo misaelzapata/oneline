@@ -5,7 +5,7 @@
 </div>
 <br>
 {% for contact, chat in chats.iteritems() %}
-    <h3>Contact {{contact[:13]}}:</h3>
+    <h3>Contact {{contact.split('@')[0]}}:</h3>
     <table class="table table-striped"> 
         <thead> 
             <tr> 
@@ -20,7 +20,7 @@
                     <th>{{ c['created']|format_date }}</th> 
                     <td>
                         <strong>
-                            {%if c['user'] %}Operador:{% else %}Cliente:{% endif %}
+                            {%if c['user'] %}Operator:{% else %}Client:{% endif %}
                         </strong>
                     </td> 
                     <td>{{c['message']}}</td> 

@@ -71,13 +71,48 @@ def get_clients_operator():
 
 @app.route('/chats')
 def chats():
-    messages = Message.objects.all()
-    contacts = Contact.objects.all()
     return render_template(
         'chats.html',
-        user=login.current_user,
-        messages=messages,
-        contacts=contacts)
+        user=login.current_user)
+
+
+@app.route('/send_message', methods=('GET', 'POST'))
+def send_message():
+    if request.method == 'POST':
+        pass
+        # for r in request.form.getlist("contact"):
+        #     id = request.form.get('message[{}]'.format(r))
+        #     message = Message.objects.get(id=id)
+        #     new_message = {}
+        #     contact = Contact.objects.get(id=r)
+        #     today = datetime.datetime.now()
+        #     if message.slug == 'mytrip':
+        #         s = Template(message.message)
+        #         s = s.safe_substitute(
+        #             name=contact.name,
+        #             status='ALL OK',
+        #             date=today.strftime('%Y-%m-%d'))
+        #         new_message['body'] = str(s)
+        #     else:
+        #         new_message['body'] = str(message.message)
+        #     log = SendLog()
+        #     log.contact = contact
+        #     log.message = message
+        #     log.raw_message = new_message['body']
+        #     log_id = log.save()
+        #     new_message['number'] = contact.phone
+        #     new_message['log'] = str(log.id)
+        #     _redis.publish('message_ready', json.dumps(new_message))
+        #     print new_message
+        # return redirect(url_for('index'))
+    else:
+        contacts = list(IncomingMessages.objects.all().distinct("contact"))
+        messages = Message.objects.all()
+        return render_template(
+            'send_message.html',
+            user=login.current_user,
+            messages=messages,
+            contacts=contacts)
 
 
 @app.route('/login/', methods=['GET', 'POST'])
