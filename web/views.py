@@ -40,8 +40,8 @@ def chats_history():
     chats = {}
     contacts = IncomingMessages.objects.all().distinct("contact")
     for contact in contacts:
-        incoming = list(IncomingMessages.objects(contact=contact))
-        outgoing = list(OutgoingMessages.objects(contact=contact))
+        incoming = list(IncomingMessages._get_collection().find({"contact": contact}))
+        outgoing = list(OutgoingMessages._get_collection().find({"contact": contact}))
         conversation = incoming + outgoing
         conversation.sort(key=lambda chat: parser.parse(chat["created"]))
         chats[contact] = conversation
@@ -51,8 +51,8 @@ def chats_history():
 @app.route('/history')
 def history():
     contact = request.args.get("contact")
-    incoming = list(IncomingMessages.objects(contact=contact))
-    outgoing = list(OutgoingMessages.objects(contact=contact))
+    incoming = list(IncomingMessages._get_collection().find({"contact": contact}))
+    outgoing = list(OutgoingMessages._get_collection().find({"contact": contact}))
     conversation = incoming + outgoing
     conversation.sort(key=lambda chat: parser.parse(chat["created"]))
     resp = Response(response=json_util.dumps({"conversation": conversation}),
@@ -63,7 +63,7 @@ def history():
 
 @app.route('/get_clients_operator')
 def get_clients_operator():
-    outgoing = OutgoingMessages.objects(operator_id=str(login.current_user.id)).distinct("contact")
+    outgoing = OutgoingMessages._get_collection().find({"operator_id":str(login.current_user.id)}).distinct("contact")
     resp = Response(response=json_util.dumps({"clients": outgoing}),
                     status=200,
                     mimetype="application/json")
