@@ -88,4 +88,3 @@ def init_login():
 if __name__ == '__main__':
     init_login()
     app.run(host='0.0.0.0', debug=True)
-

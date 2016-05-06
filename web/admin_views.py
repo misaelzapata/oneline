@@ -130,7 +130,7 @@ class ContactView(MyAdminModelView):
 
 class MessageView(MyAdminModelView):
     column_filters = ['name']
-    
+
 admin = admin.Admin(
     app,
     'Admin',
@@ -140,4 +140,3 @@ admin.add_view(ContactView(Contact))
 admin.add_view(MessageView(Message))
 admin.add_view(MyAdminModelView(OutgoingMessages))
 admin.add_view(MyAdminModelView(IncomingMessages))
-
