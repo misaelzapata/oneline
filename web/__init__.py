@@ -1,17 +1,17 @@
 from flask import Flask, g
-from config import DevConfig
+from flask.ext import login
 from flask.ext.mongoengine import MongoEngine
 from flask.ext.security import Security, MongoEngineUserDatastore, \
-    UserMixin, RoleMixin, login_required, utils, current_user
-
-from flask.ext import admin, login
+     utils, current_user
 from flask_debugtoolbar import DebugToolbarExtension
-from flask_security import utils
-
-from models import User, Role
-
+from web.config import DevConfig
+from web.models import User, Role
 
 app = Flask(__name__)
+
+import web.views
+import web.admin_views
+
 app.config.from_object(DevConfig)
 app.config['SECRET_KEY'] = '123456790'
 
@@ -27,8 +27,6 @@ db = MongoEngine(app)
 user_datastore = MongoEngineUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
-from views import *
-
 # Create a user to test with
 
 
@@ -42,32 +40,31 @@ def create_user():
     # In each case, use Flask-Security utility function to encrypt the password.
     encrypted_password = utils.encrypt_password('admin')
     if not user_datastore.get_user('dropkek@oneline.net'):
-        user_datastore.create_user(email='dropkek@oneline.net', password=encrypted_password, username="a",
+        user_datastore.create_user(email='dropkek@oneline.net', password=encrypted_password,
+                                   username="a",
                                    first_name="a", last_name="b")
     encrypted_password = utils.encrypt_password('123456')
     if not user_datastore.get_user('operator@oneline.net'):
-        user_datastore.create_user(email='operator@oneline.net', password=encrypted_password, username="b",
+        user_datastore.create_user(email='operator@oneline.net', password=encrypted_password,
+                                   username="b",
                                    first_name="b", last_name="c")
-
     user_datastore.add_role_to_user('dropkek@oneline.net', 'admin')
     user_datastore.add_role_to_user('operator@oneline.net', 'operator')
     if not user_datastore.get_user('mzapata@droptek.com'):
-        user_datastore.create_user(email='mzapata@droptek.com', password=encrypted_password, username="misael",
+        user_datastore.create_user(email='mzapata@droptek.com', password=encrypted_password,
+                                   username="misael",
                                    first_name="Misael", last_name="Zapata")
     user_datastore.add_role_to_user('mzapata@droptek.com', 'admin')
-                                   
     if not user_datastore.get_user('mbastos@droptek.com'):
-        user_datastore.create_user(email='mbastos@droptek.com', password=encrypted_password, username="matias",
+        user_datastore.create_user(email='mbastos@droptek.com', password=encrypted_password,
+                                   username="matias",
                                    first_name="Matias", last_name="Bastos")
     user_datastore.add_role_to_user('mbastos@droptek.com', 'operator')
-    
     if not user_datastore.get_user('fapelhanz@droptek.com'):
-        user_datastore.create_user(email='fapelhanz@droptek.com', password=encrypted_password, username="federico",
+        user_datastore.create_user(email='fapelhanz@droptek.com', password=encrypted_password,
+                                   username="federico",
                                    first_name="Federico", last_name="Apenhanz")
     user_datastore.add_role_to_user('fapelhanz@droptek.com', 'operator')
-    
-# Views
-from admin_views import *
 
 
 @app.before_request
@@ -81,7 +78,7 @@ def init_login():
     login_manager.init_app(app)
     login_manager.login_view = "user_login"
     # Create user loader function
-    
+
     @login_manager.user_loader
     def load_user(user_id):
         return User.objects(id=user_id).first()
@@ -89,4 +86,3 @@ def init_login():
 
 if __name__ == '__main__':
     init_login()
-    app.run(host='0.0.0.0', debug=True)

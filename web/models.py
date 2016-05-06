@@ -110,7 +110,6 @@ class UserView(ModelView):
 
 class ContactView(ModelView):
     column_filters = ['name', 'phone']
-
     column_searchable_list = ('name', 'phone')
 
 

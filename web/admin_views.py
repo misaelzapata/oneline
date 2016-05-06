@@ -1,12 +1,10 @@
-from flask.ext.admin.contrib.mongoengine import ModelView
-from wtforms import form, fields, validators
-from wtforms.fields import PasswordField
+from flask import flash, redirect, request, render_template, make_response, url_for
 from flask.ext import admin, login
-from flask.ext.admin import helpers, expose
-from flask import request, render_template, url_for, redirect, make_response
-from flask import Flask, g, flash
-from models import *
-from app import app
+from flask.ext.admin import expose, helpers
+from flask.ext.admin.contrib.mongoengine import ModelView
+from wtforms import fields, form, validators
+from web import app
+from web.models import Contact, IncomingMessage, Message, OutgoingMessage, User
 
 
 class MyAdminModelView(ModelView):
@@ -90,13 +88,6 @@ class MyAdminIndexView(admin.AdminIndexView):
 
 class UserView(MyAdminModelView):
 
-
-    #column_filters = ['first_name', 'last_name', 'username']
-    #column_exclude_list = ['password', ]
-    #form_excluded_columns = ('password',)
-    #column_searchable_list = ('first_name', 'password')
-
-    #form_overrides = dict(password=PasswordField)
     # On the form for creating or editing a User, don't display a field corresponding to the model's password field.
     # There are two reasons for this. First, we want to encrypt the password before storing in the database. Second,
     # we want to use a password field (with the input masked) rather than a
@@ -109,7 +100,7 @@ class UserView(MyAdminModelView):
 
         # Add a password field, naming it "password2" and labeling it "New
         # Password".
-        form_class.password2 = PasswordField('New Password')
+        form_class.password2 = fields.PasswordField('New Password')
         return form_class
 
     # This callback executes when the user saves changes to a newly-created or edited User -- before the changes are

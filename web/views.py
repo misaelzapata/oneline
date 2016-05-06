@@ -1,13 +1,11 @@
-from bson import json_util
-from flask import request, render_template, url_for, redirect, make_response, Response
-from flask import Flask, g, flash
-from flask.ext import admin, login
-from itsdangerous import TimestampSigner
 from dateutil import parser
-from app import app
-from models import *
-from admin_views import LoginForm
-
+from itsdangerous import TimestampSigner
+from bson import json_util
+from flask import flash, make_response, redirect, render_template, request, Response, url_for
+from flask.ext import admin, login
+from web import app
+from web.admin_views import LoginForm
+from web.models import IncomingMessage, OutgoingMessage, Message, Contact
 
 # Flask views
 @app.route('/')
