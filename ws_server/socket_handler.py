@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+"""
+Author: Matias Bastos <matias.bastos@gmail.com>
+"""
+
 import datetime
 import json
 import logging
@@ -148,12 +153,12 @@ class SocketHandler(WebSocketHandler):
 
     def _update_operators_status(self):
         try:
-            users_ids = map((lambda x: ObjectId(x)), self.OPERATORS.keys())
+            users_ids = [ObjectId(x) for x in self.OPERATORS.keys()]
             users = db.user.find({'_id':{'$in':users_ids}})
-            connected_users = map((lambda x: {'_id':str(x['_id']),
-                                              'first_name':x['first_name'],
-                                              'last_name':x['last_name']}),
-                                  users)
+            connected_users = [{'_id':str(x['_id']),
+                                'first_name':x['first_name'],
+                                'last_name':x['last_name']} \
+                                for x in users]
             data = json.dumps({'type':'operators_status',
                                'connected':connected_users})
             for op in self.OPERATORS.values():
