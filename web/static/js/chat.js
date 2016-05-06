@@ -66,7 +66,7 @@ var updater = {
     chat_window: $("#inbox"),
 
     start: function() {
-        var url = "ws://127.0.0.1:8080/chat";
+        var url = "ws://1line.droptek.com.ar:8080/chat";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             var response = JSON.parse(event.data);
