@@ -5,8 +5,7 @@ from pymongo import MongoClient
 from config import get_config
 from constants import INCOMING_MESSAGES, OUTGOING_MESSAGES, PENDING_CLIENTS
 
-_CONF = 'DevelopmentConfig'  # TODO: Start using os env variables 
-CONF = get_config(_CONF)
+CONF = get_config()
 
 
 # MongoDB
