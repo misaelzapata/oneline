@@ -5,9 +5,15 @@ import json
 import logging
 from importlib import import_module
 
+DEFAULT_CONFIG = 'DevelopmentConfig'
+
+
 def get_config(config=None):
     if config is None:
-        config = os.environ['ONELINE_CONFIG']
+        if 'ONELINE_CONFIG' in os.environ:
+            config = os.environ['ONELINE_CONFIG']
+        else:
+            config = DEFAULT_CONFIG
     Config = getattr(import_module('config'), config)
     configuration = Config()
     return configuration
