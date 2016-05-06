@@ -5,14 +5,14 @@ from flask import flash, g, make_response, redirect, render_template, request, R
 from flask.ext import admin, login
 from web import app
 from web.admin_views import LoginForm
-from web.models import IncomingMessage, OutgoingMessage, Message, Contact
+from web.models import IncomingMessages, OutgoingMessages, Message, Contact
 
 # Flask views
 @app.route('/')
 def index():
     if not login.current_user.is_authenticated:
         return redirect(url_for('user_login'))
-    received = IncomingMessage.objects.all()
+    received = IncomingMessages.objects.all()
     resp = make_response(render_template(
                          'index.html',
                          user=login.current_user,
@@ -38,10 +38,10 @@ def _jinja2_filter_datetime(date, fmt=None):
 @app.route('/chats_history')
 def chats_history():
     chats = {}
-    contacts = IncomingMessage.objects.all().distinct("contact")
+    contacts = IncomingMessages.objects.all().distinct("contact")
     for contact in contacts:
-        incoming = list(IncomingMessage.objects(contact=contact))
-        outgoing = list(OutgoingMessage.objects(contact=contact))
+        incoming = list(IncomingMessages.objects(contact=contact))
+        outgoing = list(OutgoingMessages.objects(contact=contact))
         conversation = incoming + outgoing
         conversation.sort(key=lambda chat: parser.parse(chat["created"]))
         chats[contact] = conversation
@@ -51,8 +51,8 @@ def chats_history():
 @app.route('/history')
 def history():
     contact = request.args.get("contact")
-    incoming = list(IncomingMessage.objects(contact=contact))
-    outgoing = list(OutgoingMessage.objects(contact=contact))
+    incoming = list(IncomingMessages.objects(contact=contact))
+    outgoing = list(OutgoingMessages.objects(contact=contact))
     conversation = incoming + outgoing
     conversation.sort(key=lambda chat: parser.parse(chat["created"]))
     resp = Response(response=json_util.dumps({"conversation": conversation}),
@@ -63,7 +63,7 @@ def history():
 
 @app.route('/get_clients_operator')
 def get_clients_operator():
-    outgoing = OutgoingMessage.objects(operator_id=str(login.current_user.id)).distinct("contact")
+    outgoing = OutgoingMessages.objects(operator_id=str(login.current_user.id)).distinct("contact")
     resp = Response(response=json_util.dumps({"clients": outgoing}),
                     status=200,
                     mimetype="application/json")

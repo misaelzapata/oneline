@@ -75,7 +75,7 @@ class Message(Document):
     date_modified = DateTimeField(default=datetime.datetime.now)
 
 
-class OutgoingMessage(Document):
+class OutgoingMessages(Document):
     contact = StringField()
     operator_id = StringField()
     message = StringField()    
@@ -84,12 +84,14 @@ class OutgoingMessage(Document):
     created = DateTimeField(default=datetime.datetime.now)
 
 
-class IncomingMessage(Document):
+class IncomingMessages(Document):
     message = StringField()
     contact = StringField()
     status = StringField(choices=['read', 'unread'])
     modified = DateTimeField()    
     created = DateTimeField(default=datetime.datetime.now)
+    date_readed = DateTimeField()
+    user = ReferenceField(User, required=False)
 
 # Create customized model view class
 
