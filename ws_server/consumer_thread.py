@@ -1,6 +1,13 @@
+"""
+Author: Matias Bastos <matias.bastos@gmail.com>
+"""
+
 import threading
 
 class ConsumerWorkerThread(threading.Thread):
+    """
+    Worker thread to listen RabbitMQ queue
+    """
     def __init__(self, channel):
         super(ConsumerWorkerThread, self).__init__()
         self.channel = channel

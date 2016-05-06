@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+"""
+Author: Matias Bastos <matias.bastos@gmail.com>
+"""
+
 import datetime
 import json
 import logging

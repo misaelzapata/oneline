@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+"""
+Author: Matias Bastos <matias.bastos@gmail.com>
+"""
+
 import logging
 from tornado import web, ioloop
 from itsdangerous import TimestampSigner
@@ -15,6 +20,9 @@ logging.basicConfig(format=CONF.LOGGING_FORMAT, level=CONF.LOGGING_LEVEL)
 
 
 class IndexHandler(web.RequestHandler):
+    """
+    Status page web handler.
+    """
     # pylint: disable=W0223
     def get(self):
         signer = TimestampSigner(CONF.SECRET)
@@ -25,6 +33,9 @@ class IndexHandler(web.RequestHandler):
 
 
 def run():
+    """
+    Run WsServer
+    """
     # format {'operator_id':'websocket.WebSocketHandler'}
     operators = {}
     # format {'contact_jid':'operator_id'}

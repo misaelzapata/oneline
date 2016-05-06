@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+"""
+Author: Matias Bastos <matias.bastos@gmail.com>
+"""
+
 import os
-import json
 import logging
 from importlib import import_module
 
@@ -14,13 +17,16 @@ def get_config(config=None):
             config = os.environ['ONELINE_CONFIG']
         else:
             config = DEFAULT_CONFIG
-    Config = getattr(import_module('config'), config)
-    configuration = Config()
+    Configuration = getattr(import_module('config'), config)
+    configuration = Configuration()
     return configuration
 
 
 class Config(object):
-    LOGGING_LEVEL = logging.WARNING 
+    """
+    Base Config
+    """
+    LOGGING_LEVEL = logging.WARNING
     LOGGING_FORMAT = '%(asctime)s - %(levelname)s: %(message)s'
     PORT = '8080'
     OPERATOR_ID_COOKIE = 'operator'
@@ -35,9 +41,11 @@ class Config(object):
 
 
 class DevelopmentConfig(Config):
-    LOGGING_LEVEL = logging.INFO 
+    """
+    Dev Config
+    """
+    LOGGING_LEVEL = logging.INFO
     MONGODB_DB = 'oneline'
     MONGODB_HOST = 'mongo'
     MONGODB_PORT = 27017
     RABBITMQ_HOST = 'localhost'
-    
