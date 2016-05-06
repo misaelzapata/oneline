@@ -3,9 +3,10 @@ from itsdangerous import TimestampSigner
 from bson import json_util
 from flask import flash, g, make_response, redirect, render_template, request, Response, url_for
 from flask.ext import admin, login
-from web import app
-from web.admin_views import LoginForm
-from web.models import IncomingMessages, OutgoingMessages, Message, Contact
+from app import app
+from admin_views import LoginForm
+from models import IncomingMessages, OutgoingMessages, Message, Contact
+
 
 # Flask views
 @app.route('/')
@@ -17,13 +18,11 @@ def index():
                          'index.html',
                          user=login.current_user,
                          received=received))
-    ############### nigga stuff ###################
+    # workaround for firefox issue with cookies
     if hasattr(g.user, 'id'):
         s = TimestampSigner(app.config["SECRET"])
         signature = s.sign(str(g.user.id))
-        print '######### signature: %s #########' % signature
         resp.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
-    ############## end nigga stuff ################
     return resp
 
 
@@ -32,7 +31,7 @@ def _jinja2_filter_datetime(date, fmt=None):
     date = parser.parse(date)
     native = date.replace(tzinfo=None)
     format = '%d/%m/%Y %H:%M:%S'
-    return native.strftime(format) 
+    return native.strftime(format)
 
 
 @app.route('/chats_history')
@@ -63,7 +62,7 @@ def history():
 
 @app.route('/get_clients_operator')
 def get_clients_operator():
-    outgoing = OutgoingMessages._get_collection().find({"operator_id":str(login.current_user.id)}).distinct("contact")
+    outgoing = OutgoingMessages._get_collection().find({"operator_id": str(login.current_user.id)}).distinct("contact")
     resp = Response(response=json_util.dumps({"clients": outgoing}),
                     status=200,
                     mimetype="application/json")
@@ -96,7 +95,7 @@ def user_login():
         next = request.args.get('next')
         # next_is_valid should check if the user has valid
         # permission to access the `next` url
-        #if not next_is_valid(next):
+        # if not next_is_valid(next):
         #    return flask.abort(400)
         redirect_to_index_or_next = redirect(next or url_for('send_message'))
         response = app.make_response(redirect_to_index_or_next)

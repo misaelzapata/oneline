@@ -54,7 +54,7 @@ class User(Document, UserMixin):
 
     def get_id(self):
         return str(self.id)
-        
+
 
 class Contact(Document):
     name = StringField(max_length=200, required=False)
@@ -66,7 +66,7 @@ class ContactUser(Document):
     contact_jid = StringField(max_length=200, required=True)
     user_id = StringField(max_length=200, required=True)
     date_modified = DateTimeField(default=datetime.datetime.now)
-    
+
 
 class Message(Document):
     name = StringField(max_length=200, required=True)
@@ -78,7 +78,7 @@ class Message(Document):
 class OutgoingMessages(Document):
     contact = StringField()
     operator_id = StringField()
-    message = StringField()    
+    message = StringField()
     sent = BooleanField(default='false')
     date_sent = DateTimeField()
     created = DateTimeField(default=datetime.datetime.now)
@@ -88,7 +88,7 @@ class IncomingMessages(Document):
     message = StringField()
     contact = StringField()
     status = StringField(choices=['read', 'unread'])
-    modified = DateTimeField()    
+    modified = DateTimeField()
     created = DateTimeField(default=datetime.datetime.now)
     date_readed = DateTimeField()
     user = ReferenceField(User, required=False)

@@ -3,8 +3,8 @@ from flask.ext import admin, login
 from flask.ext.admin import expose, helpers
 from flask.ext.admin.contrib.mongoengine import ModelView
 from wtforms import fields, form, validators
-from web import app
-from web.models import Contact, IncomingMessages, Message, OutgoingMessages, User
+from app import app
+from models import Contact, IncomingMessages, Message, OutgoingMessages, User
 
 
 class MyAdminModelView(ModelView):
@@ -130,7 +130,7 @@ class ContactView(MyAdminModelView):
 
 class MessageView(MyAdminModelView):
     column_filters = ['name']
-    
+
 admin = admin.Admin(
     app,
     'Admin',
@@ -140,4 +140,3 @@ admin.add_view(ContactView(Contact))
 admin.add_view(MessageView(Message))
 admin.add_view(MyAdminModelView(OutgoingMessages))
 admin.add_view(MyAdminModelView(IncomingMessages))
-
