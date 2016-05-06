@@ -3,9 +3,10 @@ from itsdangerous import TimestampSigner
 from bson import json_util
 from flask import flash, g, make_response, redirect, render_template, request, Response, url_for
 from flask.ext import admin, login
-from web import app
-from web.admin_views import LoginForm
-from web.models import IncomingMessages, OutgoingMessages, Message, Contact
+from app import app
+from admin_views import LoginForm
+from models import IncomingMessages, OutgoingMessages, Message, Contact
+
 
 # Flask views
 @app.route('/')

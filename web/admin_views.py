@@ -3,8 +3,8 @@ from flask.ext import admin, login
 from flask.ext.admin import expose, helpers
 from flask.ext.admin.contrib.mongoengine import ModelView
 from wtforms import fields, form, validators
-from web import app
-from web.models import Contact, IncomingMessages, Message, OutgoingMessages, User
+from app import app
+from models import Contact, IncomingMessages, Message, OutgoingMessages, User
 
 
 class MyAdminModelView(ModelView):

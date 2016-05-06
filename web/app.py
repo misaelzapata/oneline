@@ -4,13 +4,10 @@ from flask.ext.mongoengine import MongoEngine
 from flask.ext.security import Security, MongoEngineUserDatastore, \
      utils, current_user
 from flask_debugtoolbar import DebugToolbarExtension
-from web.config import DevConfig
-from web.models import User, Role
+from config import DevConfig
+from models import User, Role
 
 app = Flask(__name__)
-
-import web.views
-import web.admin_views
 
 app.config.from_object(DevConfig)
 app.config['SECRET_KEY'] = '123456790'
@@ -26,6 +23,8 @@ db = MongoEngine(app)
 # Setup Flask-Security
 user_datastore = MongoEngineUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
+
+from views import *
 
 # Create a user to test with
 
@@ -66,6 +65,8 @@ def create_user():
                                    first_name="Federico", last_name="Apenhanz")
     user_datastore.add_role_to_user('fapelhanz@droptek.com', 'operator')
 
+from admin_views import *
+
 
 @app.before_request
 def before_request():
@@ -86,3 +87,5 @@ def init_login():
 
 if __name__ == '__main__':
     init_login()
+    app.run(host='0.0.0.0', debug=True)
+
