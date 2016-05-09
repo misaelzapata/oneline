@@ -34,13 +34,14 @@ $(document).ready(function() {
     });
 
     $("#send-bulk").click(function(){
-        var bulk = {};
+        var bulk = {"messages":[]};
         $("input[name=contact]:checked").each(function(){
-            bulk[$(this).val()] = $("select[name='message[" + $(this).val() + "]']").val();
+            quanta = {"contact": $(this).val(), "message_id":$("select[name='message[" + $(this).val() + "]']").val()};
+            bulk["messages"].push(quanta);
         });
         $.ajax({
               type: "POST",
-              url: location.host + ":8080/send_messages",
+              url: "8080/send_messages",
               data: JSON.stringify(bulk),
               success: function(){alert("All your messages were sent!")},
               error: function(){alert("Ups! something went wrong!")}
