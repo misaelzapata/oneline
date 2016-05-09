@@ -36,7 +36,7 @@ $(document).ready(function() {
     $("#send-bulk").click(function(){
         var bulk = {"messages":[]};
         $("input[name=contact]:checked").each(function(){
-            quanta = {"contact": $(this).val(), "message_id":$("select[name='message[" + $(this).val() + "]']").val()};
+            quanta = {"contact_id": $(this).val(), "message_id":$("select[name='message[" + $(this).val() + "]']").val()};
             bulk["messages"].push(quanta);
         });
         $.ajax({
