@@ -10,6 +10,7 @@ from itsdangerous import TimestampSigner
 
 from config import get_config
 from socket_handler import SocketHandler
+from send_messages_handler import SendMessagesHandler
 from consumer_thread import ConsumerWorkerThread
 from constants import INCOMING_MESSAGES
 from incoming_messages_callback import send_messages_to_operators
@@ -61,6 +62,7 @@ def run():
             (r'/chat', SocketHandler, {'operators':operators,
                                        'contacts':contacts,
                                        'pass_to_operator':pass_to_operator}),
+            (r'/send_messages', SendMessagesHandler),
         ])
         app.listen(CONF.PORT)
         logging.info('Listening on port: %s', CONF.PORT)

@@ -15,6 +15,7 @@ from tornado.websocket import WebSocketHandler
 from config import get_config
 from constants import OUTGOING_MESSAGES, PENDING_CLIENTS
 from connections import db, pc_channel, om_channel
+from utils import get_operator_id
 
 CONF = get_config()
 logging.basicConfig(format=CONF.LOGGING_FORMAT, level=CONF.LOGGING_LEVEL)
@@ -33,7 +34,7 @@ class SocketHandler(WebSocketHandler):
 
     def open(self):
         # check loggin
-        operator_id = self._get_operator_id(self)
+        operator_id = get_operator_id(self)
         if not operator_id:
             self.close()
             return
@@ -54,11 +55,11 @@ class SocketHandler(WebSocketHandler):
             if msg['type'] == 'echo':
                 self.write_message(u"You said: %s." % message)
             elif msg['type'] == 'listen_contact':
-                operator_id = self._get_operator_id(self)
+                operator_id = get_operator_id(self)
                 self.CONTACTS[msg.contact] = operator_id
             elif msg['type'] == 'response_to_contact':
                 logging.info('Response to contact: %s', msg)
-                operator_id = self._get_operator_id(self)
+                operator_id = get_operator_id(self)
                 omsg = self._save_outgoing_message(msg, operator_id)
                 if not omsg:
                     raise Exception('unable to save outgoing message %s' % msg)
@@ -76,7 +77,7 @@ class SocketHandler(WebSocketHandler):
                 logging.info('Request contact to operator: %s', msg)
                 request = {'type':'send_contact_request',
                            'contact':msg['contact'],
-                           'from_operator_id':self._get_operator_id(self),
+                           'from_operator_id':get_operator_id(self),
                            'to_operator_id':msg['to_operator_id'],
                            'status':'pending',
                            'message':msg['message']}
@@ -117,24 +118,12 @@ class SocketHandler(WebSocketHandler):
 
     def on_close(self):
         # remove operator
-        operator_id = self._get_operator_id(self)
+        operator_id = get_operator_id(self)
         if operator_id in self.OPERATORS:
             self.OPERATORS.pop(operator_id)
         logging.info('Operator id %s disconnected.', operator_id)
         # update operators status
         self._update_operators_status()
-
-    def _get_operator_id(self, operator_cn):
-        signer = TimestampSigner(CONF.SECRET)
-        try:
-            cookie = operator_cn.get_cookie(CONF.OPERATOR_ID_COOKIE)
-            if cookie is None:
-                raise Exception('Cookie not found')
-            operator_id = signer.unsign(cookie, max_age=CONF.AUTH_EXPIRY)
-            return operator_id
-        except Exception as e:
-            logging.error('Login error: %s.', e)
-            return False
 
     def _save_outgoing_message(self, msg, operator_id):
         try:
@@ -168,7 +157,7 @@ class SocketHandler(WebSocketHandler):
             logging.error('Error updating operators status: %s.', e)
 
     def _get_next_client(self, operator):
-        operator_id = self._get_operator_id(operator)
+        operator_id = get_operator_id(operator)
         logging.info('Getting next client to operator id %s.', operator_id)
         method, header, body = pc_channel.basic_get(PENDING_CLIENTS)
         if body is None:
