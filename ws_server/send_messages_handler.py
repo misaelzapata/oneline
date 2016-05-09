@@ -21,13 +21,18 @@ logging.basicConfig(format=CONF.LOGGING_FORMAT, level=CONF.LOGGING_LEVEL)
 
 class SendMessagesHandler(web.RequestHandler):
     # pylint: disable=W0223
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+
     def post(self):
         # TODO: Use model objects.
         try:
-            messages = json.loads(self.get_argument('messages'))
+            payload = json.loads(self.get_argument('payload'))
             operator_id = get_operator_id(self)
             logging.info('Sending bulk messages.')
-            for msg in messages['messages']:
+            for msg in payload['messages']:
                 if 'message_id' in msg:
                     message = db.message.find_one( \
                         {'_id':ObjectId(msg['message_id'])})
