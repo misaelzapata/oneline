@@ -36,10 +36,12 @@ class SendMessagesHandler(web.RequestHandler):
                     message = msg['message']
                 if not message:
                     raise Exception('Unable to get the message to send.')
-                contact = msg['contact_id']
+                contact = db.contact.find_one(
+                        {'_id':ObjectId(msg['contact_id'])})
+                contact = contact['phone']
                 omsg = self._save_outgoing_message(message, contact, operator_id)
                 if not omsg:
-                    raise Exception('unable to save outgoing message %s' % msg)
+                    raise Exception('Error saving outgoing message %s' % msg)
                 omsg[u'_id'] = str(omsg['_id'])
                 om_channel.basic_publish(exchange='',
                                          routing_key=OUTGOING_MESSAGES,
