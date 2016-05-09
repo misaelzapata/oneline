@@ -23,6 +23,8 @@ class SendMessagesHandler(web.RequestHandler):
     # pylint: disable=W0223
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
 
     def post(self):
         # TODO: Use model objects.
