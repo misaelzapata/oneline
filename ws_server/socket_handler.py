@@ -34,7 +34,7 @@ class SocketHandler(WebSocketHandler):
 
     def open(self):
         # check loggin
-        operator_id = _get_operator_id(self)
+        operator_id = get_operator_id(self)
         if not operator_id:
             self.close()
             return
@@ -55,11 +55,11 @@ class SocketHandler(WebSocketHandler):
             if msg['type'] == 'echo':
                 self.write_message(u"You said: %s." % message)
             elif msg['type'] == 'listen_contact':
-                operator_id = _get_operator_id(self)
+                operator_id = get_operator_id(self)
                 self.CONTACTS[msg.contact] = operator_id
             elif msg['type'] == 'response_to_contact':
                 logging.info('Response to contact: %s', msg)
-                operator_id = _get_operator_id(self)
+                operator_id = get_operator_id(self)
                 omsg = self._save_outgoing_message(msg, operator_id)
                 if not omsg:
                     raise Exception('unable to save outgoing message %s' % msg)
@@ -77,7 +77,7 @@ class SocketHandler(WebSocketHandler):
                 logging.info('Request contact to operator: %s', msg)
                 request = {'type':'send_contact_request',
                            'contact':msg['contact'],
-                           'from_operator_id':_get_operator_id(self),
+                           'from_operator_id':get_operator_id(self),
                            'to_operator_id':msg['to_operator_id'],
                            'status':'pending',
                            'message':msg['message']}
@@ -118,7 +118,7 @@ class SocketHandler(WebSocketHandler):
 
     def on_close(self):
         # remove operator
-        operator_id = _get_operator_id(self)
+        operator_id = get_operator_id(self)
         if operator_id in self.OPERATORS:
             self.OPERATORS.pop(operator_id)
         logging.info('Operator id %s disconnected.', operator_id)
@@ -157,7 +157,7 @@ class SocketHandler(WebSocketHandler):
             logging.error('Error updating operators status: %s.', e)
 
     def _get_next_client(self, operator):
-        operator_id = _get_operator_id(operator)
+        operator_id = get_operator_id(operator)
         logging.info('Getting next client to operator id %s.', operator_id)
         method, header, body = pc_channel.basic_get(PENDING_CLIENTS)
         if body is None:
