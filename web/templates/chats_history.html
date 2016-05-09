@@ -1,0 +1,32 @@
+{% extends "_base.html" %}
+{% block content %}
+<div class="text-center">
+    <h2>Chats History</h2>
+</div>
+<br>
+{% for contact, chat in chats.iteritems() %}
+    <h3>Contact {{contact.split('@')[0]}}:</h3>
+    <table class="table table-striped"> 
+        <thead> 
+            <tr> 
+                <th>Date</th> 
+                <th>Contact</th> 
+                <th>Message</th> 
+            </tr> 
+        </thead> 
+        <tbody> 
+            {% for c in chat %}
+                <tr> 
+                    <th>{{ c['created']|format_date }}</th> 
+                    <td>
+                        <strong>
+                            {%if c['user'] %}Operator:{% else %}Client:{% endif %}
+                        </strong>
+                    </td> 
+                    <td>{{c['message']}}</td> 
+                </tr>
+            {% endfor %}
+        </tbody> 
+    </table>
+{% endfor %}
+{% endblock %}

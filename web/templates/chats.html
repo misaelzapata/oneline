@@ -1,32 +1,59 @@
 {% extends "_base.html" %}
+{% import "_forms.html" as forms %}
 {% block content %}
-<div class="text-center">
-    <h2>Chats History</h2>
+
+<input type="hidden" value="{{ user.id }}" id='current-op'/>
+<div class="col-md-12">
+        <div class="row pad-top pad-bottom">
+            <div class="col-lg-3 col-md-3 col-sm-3">
+                <div class="chat-box-online-div">
+                    <div class="chat-box-online-head">
+                        Contactos
+                    </div>
+                    <div class="panel-body chat-box-online" id="client-list">
+                    </div>
+
+                </div>
+
+            </div>
+            
+            <div class=" col-lg-6 col-md-6 col-sm-6">
+                <div class="chat-box-div">
+                    <div class="chat-box-head">
+                        Send a Message
+                            <div class="btn-group pull-right">
+                                <button id="request-client" style="display:none;" type="button" class="btn btn-success btn-sm">
+                                    <i class="glyphicon glyphicon-plus"></i>
+                                </button>
+                            </div>
+                    </div>
+                    <div id="inbox" class="panel-body chat-box-main">
+                    </div>
+                    <div id="input" class="chat-box-footer">
+                            <div class="input-group">
+                                <input type="text" name="body" id="message" class="form-control" placeholder="Enter Text Here...">
+                                <span class="input-group-btn">
+                                    <button id="send-message" class="btn btn-success">SEND</button>
+                                </span>
+
+                            </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="col-lg-3 col-md-3 col-sm-3">
+                <div class="chat-box-new-div">
+                    <div class="chat-box-new-head">
+                        Operadores
+                    </div>
+                    <div class="panel-body chat-box-new" id="operator-list">
+                    </div>
+
+                </div>
+
+            </div>
+			</div>
 </div>
-<br>
-{% for contact, chat in chats.iteritems() %}
-    <h3>Contact {{contact[:13]}}:</h3>
-    <table class="table table-striped"> 
-        <thead> 
-            <tr> 
-                <th>Date</th> 
-                <th>Contact</th> 
-                <th>Message</th> 
-            </tr> 
-        </thead> 
-        <tbody> 
-            {% for c in chat %}
-                <tr> 
-                    <th>{{ c['created']|format_date }}</th> 
-                    <td>
-                        <strong>
-                            {%if c['user'] %}Operador:{% else %}Cliente:{% endif %}
-                        </strong>
-                    </td> 
-                    <td>{{c['message']}}</td> 
-                </tr>
-            {% endfor %}
-        </tbody> 
-    </table>
-{% endfor %}
+
 {% endblock %}

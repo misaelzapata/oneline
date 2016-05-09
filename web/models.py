@@ -13,6 +13,7 @@ from mongoengine import StringField, ListField, EmbeddedDocument, \
 
 
 class Role(Document, RoleMixin):
+    """Role of the user, for now just operator and admin"""
     name = StringField(max_length=80, unique=True)
     description = StringField(max_length=255)
 
@@ -41,7 +42,7 @@ class User(Document, UserMixin):
 
     def __unicode__(self):
         return self.username
-    # Flask-Login integration
+    # Flask-Login integration with mongo
 
     def is_authenticated(self):
         return True
@@ -93,27 +94,32 @@ class IncomingMessages(Document):
     date_readed = DateTimeField()
     user = ReferenceField(User, required=False)
 
-# Create customized model view class
+# Following classes are also used on the admin, are defined here because otherwise we end up with a circular import
 
 
 class MyModelView(ModelView):
-
+    """
+    Basic Mixing, use it on every view of the admin to ensure that the view can only be accessed by admins.
+    """
     def is_accessible(self):
-        return login.current_user.is_authenticated()
+        if login.current_user.is_authenticated:
+            if login.current_user.has_role("admin"):
+                return True
+        return False
 
 
 # Customized admin views
 
 
-class UserView(ModelView):
+class UserView(MyModelView):
     column_filters = ['login', 'email']
     column_searchable_list = ('login', 'email')
 
 
-class ContactView(ModelView):
+class ContactView(MyModelView):
     column_filters = ['name', 'phone']
     column_searchable_list = ('name', 'phone')
 
 
-class MessageView(ModelView):
+class MessageView(MyModelView):
     column_filters = ['name']

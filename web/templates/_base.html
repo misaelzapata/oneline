@@ -24,11 +24,14 @@
 			  </div>
 				  <ul class="nav navbar-nav">
 				  {% if user and user.is_authenticated %}
-					  <li{% if request.path == "/send_message" %} class="active"{% endif %}>
-						  <a href="/send_message">Send Message</a>
+					  <li{% if request.path == "/chats" %} class="active"{% endif %}>
+						  <a href="/chats">Chat</a>
 					  </li>
 					  <li{% if request.path == "/chats_history" %} class="active"{% endif %}>
 						  <a href="/chats_history">Chat History</a>
+					  </li>
+					  <li{% if request.path == "/send_message" %} class="active"{% endif %}>
+						  <a href="/send_message">Send Message</a>
 					  </li>
 					  <li>
 						  <a href="/admin">Admin</a>

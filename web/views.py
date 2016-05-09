@@ -44,7 +44,7 @@ def chats_history():
         conversation = incoming + outgoing
         conversation.sort(key=lambda chat: parser.parse(chat["created"]))
         chats[contact] = conversation
-    return render_template('chats.html', chats=chats, user=login.current_user)
+    return render_template('chats_history.html', chats=chats, user=login.current_user)
 
 
 @app.route('/history')
@@ -69,10 +69,17 @@ def get_clients_operator():
     return resp
 
 
+@app.route('/chats')
+def chats():
+    return render_template(
+        'chats.html',
+        user=login.current_user)
+
+
 @app.route('/send_message')
 def send_message():
-    messages = Message.objects.all()
     contacts = Contact.objects.all()
+    messages = Message.objects.all()
     return render_template(
         'send_message.html',
         user=login.current_user,
@@ -97,7 +104,7 @@ def user_login():
         # permission to access the `next` url
         # if not next_is_valid(next):
         #    return flask.abort(400)
-        redirect_to_index_or_next = redirect(next or url_for('send_message'))
+        redirect_to_index_or_next = redirect(next or url_for('chats'))
         response = app.make_response(redirect_to_index_or_next)
         response.set_cookie(app.config["OPERATOR_ID_COOKIE"], value=signature)
         return response
