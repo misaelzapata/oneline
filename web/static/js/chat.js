@@ -41,8 +41,10 @@ $(document).ready(function() {
         });
         $.ajax({
               type: "POST",
-              url: "8080/send_messages",
+              url: "http://"+ location.hostname + ":8080/send_messages",
               data: JSON.stringify(bulk),
+              contentType: "application/json",
+              dataType: "json",
               success: function(){alert("All your messages were sent!")},
               error: function(){alert("Ups! something went wrong!")}
          });
