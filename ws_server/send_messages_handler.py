@@ -24,10 +24,10 @@ class SendMessagesHandler(web.RequestHandler):
     def post(self):
         # TODO: Use model objects.
         try:
-            messages = json.loads(self.get_argument('messages'))
+            payload = json.loads(self.get_argument('payload'))
             operator_id = get_operator_id(self)
             logging.info('Sending bulk messages.')
-            for msg in messages['messages']:
+            for msg in payload['messages']:
                 if 'message_id' in msg:
                     message = db.message.find_one( \
                         {'_id':ObjectId(msg['message_id'])})
