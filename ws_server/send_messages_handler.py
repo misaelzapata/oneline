@@ -21,6 +21,9 @@ logging.basicConfig(format=CONF.LOGGING_FORMAT, level=CONF.LOGGING_LEVEL)
 
 class SendMessagesHandler(web.RequestHandler):
     # pylint: disable=W0223
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+
     def post(self):
         # TODO: Use model objects.
         try:
