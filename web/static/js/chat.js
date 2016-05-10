@@ -44,6 +44,7 @@ $(document).ready(function() {
               url: "http://"+ location.hostname + ":8080/send_messages",
               data: JSON.stringify(bulk),
               dataType: "json",
+              crossDomain: true,
               success: function(){alert("All your messages were sent!")},
               error: function(){alert("Ups! something went wrong!")}
          });
