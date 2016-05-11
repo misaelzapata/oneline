@@ -82,7 +82,7 @@ See docs here: [link]
 
 ## Ws Server
 
-See docs here: [link]
+See docs here: [link](ws_server/README.md)
 
 ## Web
 
