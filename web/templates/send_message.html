@@ -30,9 +30,11 @@
             <td>
                 <select name='message[{{c.id}}]' class="form-control input-lg">
                     {% for m in messages %}
-                    <option value="{{m.id}}">{{m.name}}</option>
+                    <option value="{{m.id}}">{{m.slug}}</option>
                     {% endfor %}
+                     <option value="other">Other</option>
                 </select>
+                <input name="other[{{c.id}}]" class="form-control input-lg " disabled="true" placeholder="Other" />
             </td>
         </tr>
         {% endfor %}

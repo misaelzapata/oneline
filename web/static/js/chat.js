@@ -33,10 +33,22 @@ $(document).ready(function() {
         }
     });
 
+    $("select[name^='message']").on("change", function(){
+        $("input[name='" + $(this).attr("name")
+        .replace("message", "other") + "'").prop('disabled',
+        $(this).val() != "other").val("");
+    });
+
     $("#send-bulk").click(function(){
         var bulk = {"messages":[]};
         $("input[name=contact]:checked").each(function(){
-            quanta = {"contact_id": $(this).val(), "message_id":$("select[name='message[" + $(this).val() + "]']").val()};
+            var $selection = $("select[name='message[" + $(this).val() + "]']");
+            if ($selection.val() == "other"){
+                text = $("input[name='" + $selection.attr("name").replace("message", "other") + "'").val();
+                quanta = {"contact_id": $(this).val(), "message": text};
+            } else {
+                quanta = {"contact_id": $(this).val(), "message_id": $selection.val()};
+            }
             bulk["messages"].push(quanta);
         });
         $.ajax({
